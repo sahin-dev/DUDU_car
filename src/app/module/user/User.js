@@ -12,6 +12,10 @@ const UserSchema = new Schema(
       required: true,
       ref: "Auth",
     },
+    deviceId: {
+      type: String,
+      required: true,
+    },
     name: {
       type: String,
       required: true,

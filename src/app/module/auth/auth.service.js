@@ -181,11 +181,16 @@ const activateAccount = async (payload) => {
 };
 
 const loginAccount = async (payload) => {
-  const { email, password, token } = payload;
+  const { email, password, deviceId,token } = payload;
 
   const auth = await Auth.isAuthExist(email);
 
   if (!auth) throw new ApiError(status.NOT_FOUND, "User does not exist");
+
+  if (auth.deviceId !== deviceId){
+    throw new ApiError(status.BAD_REQUEST, "You are already logged in from another device");
+  }
+
   if (!auth.isActive)
     throw new ApiError(
       status.BAD_REQUEST,
@@ -235,7 +240,7 @@ const loginAccount = async (payload) => {
 const socialLogin = async (payload) => {
   validateFields(payload, ["email", "name", "role", "provider", "token"]);
 
-  const { email, name, role, provider, profile_image, address, phoneNumber, token } =
+  const { email, name, role, provider, profile_image, address, phoneNumber, token, deviceId } =
     payload || {};
 
   if (provider === LoginProvider.LOCAL)
@@ -246,6 +251,11 @@ const socialLogin = async (payload) => {
     Auth.isAuthExist(email),
     User.findOne({ email }),
   ]);
+
+
+  if(user.deviceId !== deviceId){
+    throw new ApiError(status.BAD_REQUEST, "You are already logged in from another device");
+  }
 
   if (!auth) {
     const authData = {
@@ -264,6 +274,7 @@ const socialLogin = async (payload) => {
       name,
       email,
       role,
+      deviceId,
       phoneNumber,
       ...(profile_image && { profile_image }),
       ...(address && { address }),
