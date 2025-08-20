@@ -434,7 +434,6 @@ const updateFieldsWithCron = async (check) => {
         $unset: {
           isVerified: "",
           verificationCode: "",
-          verificationCodeExpire: "",
         },
       }
     );
@@ -463,9 +462,23 @@ cron.schedule("* * * * *", async () => {
   }
 });
 
+const logout = async (userData) => {
+  const { authId } = userData;
+
+  const auth = await Auth.findById(authId);
+  if (!auth) throw new ApiError(status.NOT_FOUND, "User not found");
+
+  // Clear deviceId to log out
+  auth.deviceId = null;
+  await auth.save();
+
+  return { message: "Logged out successfully" };
+};
+
 const AuthService = {
   registrationAccount,
   loginAccount,
+  logout,
   changePassword,
   forgotPass,
   resetPassword,
