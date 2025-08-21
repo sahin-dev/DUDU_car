@@ -23,6 +23,7 @@ const Chat = require("../app/module/chat/Chat");
 const Message = require("../app/module/chat/Message");
 const validateFields = require("../util/validateFields");
 const isPeakHour = require("../util/isPeakHour");
+const ReviewService = require("../app/module/review/review.service");
 
 // trip socket =============================================================================================================================
 // track active timeouts for trip cancellation
@@ -161,14 +162,12 @@ const requestTrip = socketCatchAsync(async (socket, io, payload) => {
     isOnline: true,
   }).lean();
 
-  console.log(availableDrivers)
 
   const driverIds = availableDrivers.map((driver) => driver._id.toString());
 
   driverIds.forEach((driverId) => {
     const driverSocket = payload.activeDrivers.get(driverId);
 
-    console.log(driverId)
 
     if (driverSocket) {
       driverSocket.emit(
@@ -290,10 +289,15 @@ const acceptTrip = socketCatchAsync(async (socket, io, payload) => {
         { new: true, session }
       );
 
-      if (!driver) emitError(socket, status.NOT_FOUND, "Driver not found");
+      const driverRating = await ReviewService.getDriverRating({userId: driverId}, {});
+      
 
-      return acceptedTrip;
+      if (!driver) emitError(socket, status.NOT_FOUND, "Driver not found");
+      acceptedTrip.driver.rating = driverRating.averageRating;
+
+      return acceptedTrip
     });
+
 
     if (result) {
       const timeoutRef = tripTimeouts.get(result._id.toString());
@@ -302,6 +306,8 @@ const acceptTrip = socketCatchAsync(async (socket, io, payload) => {
         clearTimeout(timeoutRef);
         tripTimeouts.delete(result._id.toString());
       }
+
+  
 
       io.to(result.user._id.toString()).emit(
         EnumSocketEvent.TRIP_ACCEPTED,

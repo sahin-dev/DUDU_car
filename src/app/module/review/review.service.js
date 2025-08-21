@@ -155,12 +155,33 @@ const deleteReview = async (userData, payload) => {
   return result;
 };
 
+const getDriverRating = async (userData, query) => {
+  const { driverId } = userData;
+  const driverReviews = await Review.find({ user: driverId })
+    .select("rating review")
+    .lean();  
+
+  if (!driverReviews || driverReviews.length === 0) {
+    return {
+      averageRating: 0.00,
+      reviews: [],
+    };
+  }
+  const totalRating = driverReviews.reduce((acc, review) => acc + review.rating, 0);
+  const averageRating = (totalRating / driverReviews.length).toFixed(2);
+  return {
+    averageRating,
+    reviews: driverReviews,
+  };
+}
+
 const ReviewService = {
   postReview,
   getAllReviews,
   getReview,
   deleteReview,
   updateReview,
+  getDriverRating
 };
 
 module.exports = ReviewService;

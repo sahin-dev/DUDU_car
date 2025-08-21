@@ -15,6 +15,7 @@ const isPeakHour = require("../../../util/isPeakHour");
 const getTimeRange = require("../../../util/getTimeRage");
 const { default: mongoose } = require("mongoose");
 const fareCalculator = require("../../../util/fareCalculator");
+const ReviewService = require("../review/review.service");
 
 const getTrip = async (userData, query) => {
   validateFields(query, ["tripId"]);
@@ -228,6 +229,7 @@ const getDriverCurrentTrip = async (userData, payload) => {
       },
       {
         path: "driver",
+        
         populate: {
           path: "assignedCar",
         },
@@ -237,6 +239,8 @@ const getDriverCurrentTrip = async (userData, payload) => {
     .lean();
 
   if (!trip) throw new ApiError(status.NOT_FOUND, "No current trip found.");
+
+  
 
   return trip;
 };
@@ -272,6 +276,10 @@ const getUserCurrentTrip = async (userData, payload) => {
     .lean();
 
   if (!trip) throw new ApiError(status.NOT_FOUND, "No current trip found.");
+  
+  const driverReview = await ReviewService.getDriverRating(
+    trip.driver._id.toString(),{})
+    trip.driver.rating = driverReview.averageRating;
 
   return trip;
 };
