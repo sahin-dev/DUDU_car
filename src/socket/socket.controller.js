@@ -107,7 +107,7 @@ const requestTrip = socketCatchAsync(async (socket, io, payload) => {
     "dropOffLong",
     "duration",
     "distance",
-    "tripType" //filed to recognised the trip type, ride or pre-book ride
+     //filed to recognised the trip type, ride or pre-book ride
   ]);
 
   const tripData = {
@@ -140,6 +140,8 @@ const requestTrip = socketCatchAsync(async (socket, io, payload) => {
       select: "name phoneNumber profile_image",
     },
   ]);
+
+  console.log("Trip: ",trip)
 
   socket.emit(
     EnumSocketEvent.TRIP_REQUESTED,

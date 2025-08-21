@@ -12,6 +12,10 @@ const AuthSchema = new Schema(
       type: String,
       required: true,
     },
+     deviceId: {
+      type: String,
+      required: false,
+    },
     email: {
       type: String,
       required: [true, "Email is required"],
@@ -83,6 +87,7 @@ AuthSchema.statics.isAuthExist = async function (email) {
       isActive: 1,
       isBlocked: 1,
       isVerified: 1,
+      deviceId: 1,
     }
   );
 };

@@ -187,6 +187,8 @@ const loginAccount = async (payload) => {
 
   if (!auth) throw new ApiError(status.NOT_FOUND, "User does not exist");
 
+  console.log("auth", auth);  
+
   if (auth.deviceId && (auth.deviceId !== deviceId)){
     throw new ApiError(status.BAD_REQUEST, "You are already logged in from another device");
   }
@@ -206,7 +208,10 @@ const loginAccount = async (payload) => {
     throw new ApiError(status.BAD_REQUEST, "Password is incorrect");
   }
   // Update token whenever user login 
-  await User.updateOne({authId:auth._id}, {token:token})
+  await Auth.updateOne({authId:auth._id}, {token:token})
+
+  //update deviceId if it is not same as previous
+  await Auth.updateOne({ _id: auth._id }, { deviceId: deviceId }, { new: true });
 
   let result;
   switch (auth.role) {
@@ -253,7 +258,7 @@ const socialLogin = async (payload) => {
   ]);
 
 
-  if( user.deviceId && (user.deviceId !== deviceId)){
+  if( auth.deviceId && (auth.deviceId !== deviceId)){
     throw new ApiError(status.BAD_REQUEST, "You are already logged in from another device");
   }
 
@@ -263,6 +268,7 @@ const socialLogin = async (payload) => {
       email,
       role,
       provider,
+      deviceId,
       isActive: true,
     };
     validateFields(payload, ["phoneNumber"]);
@@ -274,7 +280,6 @@ const socialLogin = async (payload) => {
       name,
       email,
       role,
-      deviceId,
       phoneNumber,
       ...(profile_image && { profile_image }),
       ...(address && { address }),
@@ -466,7 +471,11 @@ const logout = async (userData) => {
   const { authId } = userData;
 
   const auth = await Auth.findById(authId);
-  if (!auth) throw new ApiError(status.NOT_FOUND, "User not found");
+  const user = await User.findOne({ authId: auth._id });
+  if (!user) throw new ApiError(status.NOT_FOUND, "User not found");
+
+  user.token = null; // Clear token to log out
+  await user.save();
 
   // Clear deviceId to log out
   auth.deviceId = null;

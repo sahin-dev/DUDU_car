@@ -16,6 +16,7 @@ router
   .post("/forgot-password", AuthController.forgotPass)
   .post("/forget-pass-otp-verify", AuthController.forgetPassOtpVerify)
   .post("/reset-password", AuthController.resetPassword)
+  .post("/logout", auth(), AuthController.logout)
   .patch(
     "/change-password",
     auth(config.auth_level.user),

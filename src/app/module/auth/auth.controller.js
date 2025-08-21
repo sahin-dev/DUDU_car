@@ -109,6 +109,19 @@ const resetPassword = catchAsync(async (req, res) => {
   });
 });
 
+const logout = catchAsync(async (req, res) => {
+  const user = req.user;
+
+  const {authId} = user
+  await AuthService.logout({authId});
+  
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Logged out successfully",
+  });
+});
+
 const AuthController = {
   registrationAccount,
   activateAccount,
@@ -119,6 +132,7 @@ const AuthController = {
   resetPassword,
   forgetPassOtpVerify,
   resendActivationCode,
+  logout
 };
 
 module.exports = { AuthController };

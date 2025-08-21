@@ -35,7 +35,7 @@ const auth =
           throw new ApiError(httpStatus.UNAUTHORIZED, "You are not authorized");
         }
 
-        if (roles.length && !roles.includes(verifyUser.role))
+        if (roles && !roles.includes(verifyUser.role))
           throw new ApiError(
             httpStatus.FORBIDDEN,
             "Access Forbidden: You do not have permission to perform this action"
