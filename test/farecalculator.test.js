@@ -1,8 +1,6 @@
 // __tests__/fareCalculator.test.js
 const fareCalculator = require("../src/util/fareCalculator"); // adjust path
-const Coupon = require("../src/app/module/coupon/Coupon");
 const Fare = require("../src/app/module/trip/Fare");
-const emitError = require("../src/socket/emitError");
 const isPeakHour = require("../src/util/isPeakHour");
 
 jest.mock("../src/app/module/coupon/Coupon");
@@ -11,16 +9,16 @@ jest.mock("../src/socket/emitError");
 jest.mock("../src/util/isPeakHour");
 
 const mockFindOne = (data) => ({
-  lean: jest.fn().mockResolvedValue(data),  // .lean() returns a Promise
+  lean: jest.fn().mockResolvedValue(data),  
 });
 describe("fareCalculator", () => {
-  const socket = {}; // dummy socket object
+  const socket = {};
 
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it("test 1", async () => {
+  it("Test for 25min and 8km ride, should return RM 20.50", async () => {
     Fare.findOne.mockReturnValue(mockFindOne({
       baseFare: 3,
       farePerKm: 0.34,
@@ -33,7 +31,7 @@ describe("fareCalculator", () => {
     expect(fare).toBe(20.50);
   });
 
-    it("test 2", async () => {
+    it("Test for 15min and 6km ride, should resturn RM 14", async () => {
     Fare.findOne.mockReturnValue(mockFindOne({
       baseFare: 3,
       farePerKm: 0.34,
@@ -42,7 +40,7 @@ describe("fareCalculator", () => {
     }));
     isPeakHour.mockResolvedValue(false);
 
-    const fare = await fareCalculator(socket, 15, 6000); // 25 mins, 8000m
+    const fare = await fareCalculator(socket, 15, 6000); // 15 mins, 6000m
     expect(fare).toBe(14);
   });
 

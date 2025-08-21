@@ -50,14 +50,13 @@ const fareCalculator = async (
   const distanceInKm = Math.ceil(Number(distance) / 1000);
   const durationInMin = Math.ceil(Number(duration));
 
-  let finalFare = 0
   let actualfare = baseFare + (distanceInKm * farePerKm) + (durationInMin * farePerMin)
 
   let roundedFare = Math.round(actualfare)
+  let finalFare = roundedFare
 
-  if(roundedFare < actualfare) finalFare = roundedFare + 0.5;
-  else
-    finalFare = roundedFare
+  if(roundedFare < actualfare) finalFare += 0.5;
+
 
 
   if (finalFare < minFare) finalFare = minFare;
