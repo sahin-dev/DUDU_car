@@ -187,7 +187,7 @@ const loginAccount = async (payload) => {
 
   if (!auth) throw new ApiError(status.NOT_FOUND, "User does not exist");
 
-  if (auth.deviceId !== deviceId){
+  if (auth.deviceId && (auth.deviceId !== deviceId)){
     throw new ApiError(status.BAD_REQUEST, "You are already logged in from another device");
   }
 
@@ -240,7 +240,7 @@ const loginAccount = async (payload) => {
 const socialLogin = async (payload) => {
   validateFields(payload, ["email", "name", "role", "provider", "token"]);
 
-  const { email, name, role, provider, profile_image, address, phoneNumber, token, deviceId } =
+  const { email, name, role, provider, profile_image, address, phoneNumber, token } =
     payload || {};
 
   if (provider === LoginProvider.LOCAL)
@@ -253,7 +253,7 @@ const socialLogin = async (payload) => {
   ]);
 
 
-  if(user.deviceId !== deviceId){
+  if( user.deviceId && (user.deviceId !== deviceId)){
     throw new ApiError(status.BAD_REQUEST, "You are already logged in from another device");
   }
 

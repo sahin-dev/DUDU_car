@@ -14,7 +14,7 @@ const UserSchema = new Schema(
     },
     deviceId: {
       type: String,
-      required: true,
+      required: false,
     },
     name: {
       type: String,

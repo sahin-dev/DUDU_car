@@ -277,8 +277,8 @@ const getUserCurrentTrip = async (userData, payload) => {
 
   if (!trip) throw new ApiError(status.NOT_FOUND, "No current trip found.");
   
-  const driverReview = await ReviewService.getDriverRating(
-    trip.driver._id.toString(),{})
+  const driverReview = await ReviewService.getDriverRating({driverId:trip.driver._id.toString()},{})
+
     trip.driver.rating = driverReview.averageRating;
 
   return trip;
