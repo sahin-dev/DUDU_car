@@ -8,6 +8,7 @@ const processFileUpdates = (files = {}, fileFields) => {
 
     if (Array.isArray(oldPath)) {
       // For arrays: map new paths and unlink old files
+      
       updateData[key] = files[key].map((file) => file.path);
       oldPath.forEach((path) => path && unlinkFile(path));
     } else {

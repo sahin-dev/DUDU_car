@@ -72,12 +72,40 @@ const getDriverEarningReport = catchAsync(async (req, res) => {
   });
 });
 
+const verifyPayment = catchAsync (async (req, res)=>{
+  const payload = req.body
+  const result = await PaymentService.verifyPayment(payload)
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Payment Verified successfully",
+    data: result,
+  });
+})
+
+
+const createPayment = catchAsync(async (req,res)=>{
+  const payload = req.body
+
+  const createdPayment = await PaymentService.createPayment(payload)
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Payment created",
+    data:createdPayment
+  })
+})
+
 const PaymentController = {
   getPayment,
   getAllPayments,
   getDriverEarningReport,
   fiuuNotification,
-  fiuuCallback
+  fiuuCallback,
+  verifyPayment,
+  createPayment
 };
 
 module.exports = PaymentController;

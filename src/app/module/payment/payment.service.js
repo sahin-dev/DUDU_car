@@ -52,6 +52,18 @@ const fiuuCallback = async (payload)=>{
   console.log(payload)
 }
 
+const verifyPayment = async (payload)=>{
+
+  return FiuuService.verifySKey(payload)
+}
+
+
+const createPayment = async (paymentData)=>{
+
+  const payment = await Payment.create(paymentData)
+
+  return payment
+}
 
 const getPayment = async (userData, query) => {
   validateFields(query, ["paymentId"]);
@@ -227,7 +239,9 @@ const PaymentService = {
   getAllPayments,
   getDriverEarningReport,
   fiuuNotification,
-  fiuuCallback
+  fiuuCallback,
+  verifyPayment,
+  createPayment
 };
 
 module.exports = PaymentService;

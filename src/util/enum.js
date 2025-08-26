@@ -22,11 +22,13 @@ const UserAccountStatus = {
 const EnumPaymentType = {
   CASH: "cash",
   COIN: "coin",
+  ONLINE:"online"
 };
 
 const EnumPaymentStatus = {
   SUCCEEDED: "succeeded",
   UNPAID: "unpaid",
+  VERIFIED:"verified"
 };
 
 const EnumPaymentFor = {

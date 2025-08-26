@@ -15,6 +15,7 @@ const SavedLocationRoutes = require("../module/savedLocation/savedLocation.route
 const ChatRoutes = require("../module/chat/chat.routes");
 const PaymentRoutes = require("../module/payment/payment.routes");
 const CouponRoutes = require("../module/coupon/coupon.routes");
+const { contactRoutes } = require("../module/Contact/contact.route");
 
 const moduleRoutes = [
   {
@@ -77,6 +78,10 @@ const moduleRoutes = [
     path: "/coupon",
     route: CouponRoutes,
   },
+  {
+    path:"/contact",
+    route:contactRoutes
+  }
 ];
 
 moduleRoutes.forEach((route) => router.use(route.path, route.route));

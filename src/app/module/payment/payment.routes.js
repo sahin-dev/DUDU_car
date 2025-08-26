@@ -8,6 +8,8 @@ const router = express.Router();
 router
   .post("/notification", PaymentController.fiuuNotification)
   .post("/callback", PaymentController.fiuuCallback)
+  .post("/verify", PaymentController.verifyPayment)
+  .post("/create", PaymentController.createPayment)
   .get(
     "/get-payment",
     auth(config.auth_level.user),

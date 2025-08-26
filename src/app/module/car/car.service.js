@@ -20,7 +20,7 @@ const postCar = async (req) => {
     "car_image",
     "car_grant_image",
     "car_insurance_image",
-    "e_hailing_car_permit_image",
+    "e_hailing_vehicle_permit_pdf",
   ]);
   validateFields(payload, [
     "brand",
@@ -53,7 +53,7 @@ const postCar = async (req) => {
     car_image: files.car_image.map((file) => file.path),
     car_grant_image: files.car_grant_image[0].path,
     car_insurance_image: files.car_insurance_image[0].path,
-    e_hailing_car_permit_image: files.e_hailing_car_permit_image[0].path,
+    e_hailing_vehicle_permit_pdf: files.e_hailing_vehicle_permit_pdf[0].path,
   };
 
   const car = await Car.create(carData);
@@ -128,16 +128,21 @@ const updateCar = async (req) => {
     files.car_image || []
   );
 
+  console.log(files)
+
   const fileFields = [
     { key: "car_grant_image", oldPath: car.car_grant_image },
     { key: "car_insurance_image", oldPath: car.car_insurance_image },
     {
-      key: "e_hailing_car_permit_image",
-      oldPath: car.e_hailing_car_permit_image,
+      key: "e_hailing_vehicle_permit_pdf",
+      oldPath: car.e_hailing_vehicle_permit_pdf,
     },
   ];
 
   const fileUpdates = processFileUpdates(files, fileFields);
+
+  
+
   const updateData = {
     ...payload,
     ...fileUpdates,

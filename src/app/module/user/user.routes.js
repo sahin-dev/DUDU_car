@@ -8,6 +8,7 @@ const router = express.Router();
 
 router
   .get("/profile", auth(config.auth_level.user), UserController.getProfile)
+  .get("/states", auth(config.auth_level.driver), UserController.getDriverStates)
   .patch(
     "/edit-profile",
     auth(config.auth_level.user),

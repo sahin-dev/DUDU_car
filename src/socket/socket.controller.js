@@ -162,6 +162,7 @@ const requestTrip = socketCatchAsync(async (socket, io, payload) => {
   const availableDrivers = await User.find({
     role: EnumUserRole.DRIVER,
     isOnline: true,
+    isAvailable:true
   }).lean();
 
 
@@ -244,6 +245,8 @@ const acceptTrip = socketCatchAsync(async (socket, io, payload) => {
   validateSocketFields(socket, payload, ["tripId", "userId", "lat", "long"]);
 
   const { tripId, userId: driverId } = payload;
+
+  console.log(`tripId: ${tripId} , userId: ${driverId}`)
 
   const session = await mongoose.startSession();
 

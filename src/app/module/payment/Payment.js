@@ -31,11 +31,11 @@ const paymentSchema = new Schema(
     },
     checkout_session_id: {
       type: String,
-      unique: true,
-      required: true,
+      required: false,
     },
     payment_intent_id: {
       type: String,
+      required: false
     },
     paymentFor: {
       type: String,
@@ -51,7 +51,7 @@ const paymentSchema = new Schema(
       type: String,
       required: true,
       enum: {
-        values: [EnumPaymentType.COIN, EnumPaymentType.CASH],
+        values: [EnumPaymentType.COIN, EnumPaymentType.CASH, EnumPaymentType.ONLINE],
         message: `Invalid trip status. Allowed values: ${Object.values(
           EnumPaymentType
         ).join(", ")}`,
@@ -61,7 +61,7 @@ const paymentSchema = new Schema(
       type: String,
       default: EnumPaymentStatus.UNPAID,
       enum: {
-        values: [EnumPaymentStatus.UNPAID, EnumPaymentStatus.SUCCEEDED],
+        values: [EnumPaymentStatus.UNPAID, EnumPaymentStatus.SUCCEEDED, EnumPaymentStatus.VERIFIED],
         message: `Invalid trip status. Allowed values: ${Object.values(
           EnumPaymentStatus
         ).join(", ")}`,

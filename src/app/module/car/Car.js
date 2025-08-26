@@ -67,7 +67,7 @@ const carSchema = new Schema(
       type: String,
       required: true,
     },
-    e_hailing_car_permit_image: {
+    e_hailing_vehicle_permit_pdf: {
       type: String,
       required: true,
     },

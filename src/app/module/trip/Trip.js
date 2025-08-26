@@ -117,7 +117,7 @@ const tripSchema = new Schema(
     paymentType: {
       type: String,
       enum: {
-        values: [EnumPaymentType.CASH, EnumPaymentType.COIN],
+        values: [EnumPaymentType.CASH, EnumPaymentType.COIN, EnumPaymentType.ONLINE],
         message: `Invalid trip status. Allowed values: ${Object.values(
           EnumPaymentType
         ).join(", ")}`,

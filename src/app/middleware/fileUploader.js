@@ -3,7 +3,13 @@ const fs = require("fs");
 
 const allowedMimeTypes = ["image/jpeg", "image/png", "image/jpg", "image/webp"];
 
+const allowedPdfMimeType = ["application/pdf", "application/x-pdf"]
+
 const isValidFileType = (mimetype) => allowedMimeTypes.includes(mimetype);
+
+const isValidPdf = (mimetype) => allowedPdfMimeType.includes(mimetype)
+
+const evpFieldName = "e_hailing_vehicle_permit_pdf"
 
 const createDirIfNotExists = (uploadPath) => {
   if (!fs.existsSync(uploadPath)) fs.mkdirSync(uploadPath, { recursive: true });
@@ -16,11 +22,22 @@ const uploadFile = () => {
 
       createDirIfNotExists(uploadPath);
 
-      if (isValidFileType(file.mimetype)) {
-        cb(null, uploadPath);
-      } else {
-        cb(new Error("Invalid file type"));
+      if(file.fieldname.localeCompare(evpFieldName, "en") === 0){
+        if(isValidPdf(file.mimetype)){
+          cb(null, uploadPath)
+        }else{
+          console.log(file.mimetype)
+          cb(new Error("Invalid pdf file type"))
+        }
+      }else {
+        if (isValidFileType(file.mimetype)) {
+          cb(null, uploadPath);
+        } else {
+          cb(new Error("Invalid file type"));
+        }
       }
+
+      
     },
     filename: function (req, file, cb) {
       const name = Date.now() + "-" + file.originalname;
@@ -44,7 +61,7 @@ const uploadFile = () => {
       "car_image",
       "car_grant_image",
       "car_insurance_image",
-      "e_hailing_car_permit_image",
+      "e_hailing_vehicle_permit_pdf",
     ];
 
     // Allow requests without files (when there's no fieldname)
@@ -53,6 +70,10 @@ const uploadFile = () => {
     // Check if the fieldname is valid
     if (!allowedFieldNames.includes(file.fieldname))
       return cb(new Error("Invalid fieldname"));
+    if (file.fieldname.localeCompare(evpFieldName, 'en') === 0){
+      if(isValidPdf(file.mimetype)) return cb(null, true)
+      else return cb (new Error("Invalid pdf type"))
+    }
 
     // Check if the file type is valid
     if (isValidFileType(file.mimetype)) return cb(null, true);
@@ -71,7 +92,7 @@ const uploadFile = () => {
     { name: "car_image", maxCount: 5 },
     { name: "car_grant_image", maxCount: 1 },
     { name: "car_insurance_image", maxCount: 1 },
-    { name: "e_hailing_car_permit_image", maxCount: 1 },
+    { name: "e_hailing_vehicle_permit_pdf", maxCount: 1 },
   ]);
 
   return upload;

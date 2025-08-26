@@ -31,10 +31,27 @@ const deleteMyAccount = catchAsync(async (req, res) => {
   });
 });
 
+const getDriverStates = catchAsync(async (req,res)=>{
+  
+  const {userId} = req.user
+
+ 
+
+  const states = await UserController.getDriverStates(userId)
+
+  sendResponse(res, {
+    statusCode:200,
+    success:true,
+    message:"driver states fetched successfully",
+    data:states
+  })
+})
+
 const UserController = {
   deleteMyAccount,
   getProfile,
   updateProfile,
+  getDriverStates
 };
 
 module.exports = { UserController };

@@ -5,6 +5,8 @@ const User = require("./User");
 const Auth = require("../auth/Auth");
 const unlinkFile = require("../../../util/unlinkFile");
 const deleteFalsyField = require("../../../util/deleteFalsyField");
+const { EnumUserRole } = require("../../../util/enum");
+const Trip = require("../trip/Trip");
 
 const updateProfile = async (req) => {
   const { files, body: data } = req;
@@ -52,7 +54,7 @@ const getProfile = async (userData) => {
 
   const [auth, result] = await Promise.all([
     Auth.findById(authId).lean(),
-    User.findById(userId).populate("authId").lean(),
+    User.findById(userId).populate("authId assignedCar").lean(),
   ]);
 
   if (!result || !auth) throw new ApiError(status.NOT_FOUND, "User not found");
@@ -80,10 +82,24 @@ const deleteMyAccount = async (payload) => {
   ]);
 };
 
+const getDriverStats = async (userId)=>{
+  const driver = await User.find({_id:userId})
+  if(!driver){
+    throw new ApiError(status.NOT_FOUND, "Driver not found")
+  }
+
+ const trip = await Trip.aggregate([{$match:{_id:userId}}]).exec()
+ console.log(trip)
+
+ return trip
+  
+}
+
 const UserService = {
   getProfile,
   deleteMyAccount,
   updateProfile,
+  getDriverStats
 };
 
 module.exports = { UserService };
