@@ -746,6 +746,7 @@ const handleStatusNotifications = (io, trip, newStatus) => {
       data: trip,
     })
   );
+  
 
   postNotification(`Trip update`, messageMap[newStatus].rider, trip.user);
 
