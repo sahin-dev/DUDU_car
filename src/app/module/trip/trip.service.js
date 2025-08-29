@@ -85,9 +85,17 @@ const getAllTrips = async (userData, query) => {
     tripQuery.countTotal(),
   ]);
 
+  let tripsWithDriverRating = await Promise.all(trips.map(async trip => {
+    const driverRating = await ReviewService.getDriverRating({driverId: trip.driver._id})
+     trip.driver.rating = driverRating.averageRating
+
+     return trip
+  }))
+
+
   return {
     meta,
-    trips,
+    trips:tripsWithDriverRating,
   };
 };
 

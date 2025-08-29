@@ -66,6 +66,10 @@ const postCar = async (req) => {
 const getCar = async (userData, query) => {
   validateFields(query, ["carId"]);
 
+  if (!mongoose.Types.ObjectId.isValid(query.carId)){
+    throw new ApiError(status.BAD_REQUEST, "carId is not valid")
+  }
+
   const car = await Car.findById(query.carId)
     .populate([
       {

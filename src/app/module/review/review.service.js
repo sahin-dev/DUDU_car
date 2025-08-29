@@ -5,86 +5,52 @@ const QueryBuilder = require("../../../builder/queryBuilder");
 const postNotification = require("../../../util/postNotification");
 const validateFields = require("../../../util/validateFields");
 const { default: mongoose } = require("mongoose");
-const { EnumUserRole } = require("../../../util/enum");
+const { EnumUserRole, EnumTripType, TripStatus } = require("../../../util/enum");
 const Review = require("./Review");
+const Trip = require("../trip/Trip");
+const Car = require("../car/Car");
 
 const postReview = async (userData, payload) => {
-  validateFields(payload, ["rating", "review"]);
+  validateFields(payload, ["carId","rating", "review"]);
 
   const { userId } = userData;
   const { carId } = payload || {};
   const reviewData = {
     user: userId,
-    car: carId,
-    ...payload,
+    rating: payload.rating,
+    review: payload.review
   };
-  const carObjectId = mongoose.Types.ObjectId.createFromHexString(carId);
 
-  validateFields(payload, ["carId", "rating", "review"]);
+  if(!mongoose.Types.ObjectId.isValid(carId)){
+    throw new ApiError(status.BAD_REQUEST, "Car id is not valid");
+  }
 
-  const car = await Car.findById(payload.carId).select("user make").lean();
-  if (!car) throw new ApiError(status.NOT_FOUND, "Car not found");
-  reviewData.host = car.user;
+
+  const car = await Car.findById(payload.carId).populate("assignedDriver").lean();
+
+
+   if (!car) throw new ApiError(status.NOT_FOUND, "Car not found");
+
+ 
+  reviewData.driver = car.assignedDriver._id;
+
 
   const result = await Review.create(reviewData);
 
-  const avgCarRatingAgg = await Review.aggregate([
-    {
-      $match: { car: carObjectId },
-    },
-    {
-      $group: {
-        _id: "$car",
-        avgRating: {
-          $avg: "$rating",
-        },
-      },
-    },
-  ]);
-
-  const avgHostRatingAgg = await Car.aggregate([
-    {
-      $match: { user: car.user },
-    },
-    {
-      $group: {
-        _id: "$user",
-        avgRating: {
-          $avg: "$rating",
-        },
-      },
-    },
-  ]);
-
-  const avgCarRating = avgCarRatingAgg[0].avgRating.toFixed(2) ?? 0;
-  const avgHostRating = avgHostRatingAgg[0].avgRating.toFixed(2) ?? 0;
-
-  Promise.all([
-    Car.updateOne(
-      { _id: carId },
-      { rating: avgCarRating },
-      { new: true, runValidators: true }
-    ),
-    User.updateOne(
-      { _id: car.user },
-      { rating: avgHostRating },
-      { new: true, runValidators: true }
-    ),
-  ]);
+  
 
   postNotification(
     "New Review Alert",
     `You've received a new ${payload.rating}-star review.`,
-    car.user
+    result.driver
   );
 
   return result;
 };
 
 const getAllReviews = async (userData, query) => {
-  const queryObj =
-    userData.role === EnumUserRole.ADMIN ? {} : { user: userData.userId };
-
+  validateFields(query,["driverId"])
+  const queryObj = {driver: query.driverId}
   const reviewQuery = new QueryBuilder(
     Review.find(queryObj)
       .populate([
@@ -155,9 +121,9 @@ const deleteReview = async (userData, payload) => {
   return result;
 };
 
-const getDriverRating = async (userData, query) => {
-  const { driverId } = userData;
-  const driverReviews = await Review.find({ user: driverId })
+const getDriverRating = async (query) => {
+  const { driverId } = query;
+  const driverReviews = await Review.find({ driver: driverId }).populate({path:'user', select:'name profile_image'})
     .select("rating review")
     .lean();  
 
@@ -168,7 +134,7 @@ const getDriverRating = async (userData, query) => {
     };
   }
   const totalRating = driverReviews.reduce((acc, review) => acc + review.rating, 0);
-  const averageRating = (totalRating / driverReviews.length).toFixed(2);
+  const averageRating = parseFloat((totalRating / driverReviews.length).toFixed(2));
   return {
     averageRating,
     reviews: driverReviews,

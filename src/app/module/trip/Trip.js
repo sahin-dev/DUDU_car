@@ -22,6 +22,10 @@ const tripSchema = new Schema(
       enum:["ride","pre_book"],         //  Two possible option for trip ride or pre-book ride
       default:"ride"                    //
     },
+    pickUpDate:{
+      type: Date,
+      required:false
+    },
     pickUpAddress: {
       type: String,
       required: true,

@@ -431,45 +431,79 @@ const editDriver = async (req) => {
 const getUserTripStats = async (query) => {
   validateFields(query, ["userId"]);
 
+  // const stats = await Trip.aggregate([
+  //   {
+  //     $match: {
+  //       user: mongoose.Types.ObjectId.createFromHexString(query.userId),
+  //     },
+  //   },
+  //   {
+  //     $group: {
+  //       _id: "$status",
+  //       count: { $sum: 1 },
+  //     },
+  //   },
+  //   {
+  //     $sort: {
+  //       _id: 1,
+  //     },
+  //   },
+  //   {
+  //     $group: {
+  //       _id: null,
+  //       totalTrip: { $sum: "$count" },
+  //       statusCounts: {
+  //         $push: {
+  //           status: "$_id",
+  //           count: "$count",
+  //         },
+  //       },
+  //     },
+  //   },
+  //   {
+  //     $project: {
+  //       _id: 0,
+  //       totalTrip: 1,
+  //       statusCounts: 1,
+  //     },
+  //   },
+    
+  // ]);
+
+
   const stats = await Trip.aggregate([
-    {
+     {
       $match: {
         user: mongoose.Types.ObjectId.createFromHexString(query.userId),
       },
     },
-    {
-      $group: {
-        _id: "$status",
-        count: { $sum: 1 },
-      },
-    },
-    {
-      $sort: {
-        _id: 1,
-      },
-    },
-    {
-      $group: {
-        _id: null,
-        totalTrip: { $sum: "$count" },
-        statusCounts: {
-          $push: {
-            status: "$_id",
-            count: "$count",
-          },
-        },
-      },
-    },
-    {
-      $project: {
-        _id: 0,
-        totalTrip: 1,
-        statusCounts: 1,
-      },
-    },
-  ]);
+  {
+    $group: {
+      _id: "$status",
+      count: { $sum: 1 }
+    }
+  },
+  {
+    $group: {
+      _id: null,
+      totalTrips: { $sum: "$count" },
+      statusCounts: { $push: { k: "$_id", v: "$count" } }
+    }
+  },
+  {
+    $replaceRoot: {
+      newRoot: {
+        $mergeObjects: [
+          { totalTrips: "$totalTrips" },
+          { $arrayToObject: "$statusCounts" }
+        ]
+      }
+    }
+  },
 
-  return stats[0] || { totalTrip: 0, statusCounts: [] };
+])
+
+  return stats[0] || { totalTrip: 0 };
 };
 
 const blockUnblockUserDriver = async (payload) => {

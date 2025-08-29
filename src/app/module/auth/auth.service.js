@@ -182,6 +182,7 @@ const activateAccount = async (payload) => {
 
 const loginAccount = async (payload) => {
   const { email, password, deviceId,token } = payload;
+  console.log(token)
 
   const auth = await Auth.isAuthExist(email);
 
@@ -208,7 +209,7 @@ const loginAccount = async (payload) => {
     throw new ApiError(status.BAD_REQUEST, "Password is incorrect");
   }
   // Update token whenever user login 
-  await Auth.updateOne({authId:auth._id}, {token:token})
+  await User.updateOne({authId:auth._id}, {token:token})
 
   //update deviceId if it is not same as previous
   await Auth.updateOne({ _id: auth._id }, { deviceId: deviceId }, { new: true });
@@ -236,6 +237,8 @@ const loginAccount = async (payload) => {
     config.jwt.secret,
     config.jwt.expires_in
   );
+
+
 
   return {
     accessToken,

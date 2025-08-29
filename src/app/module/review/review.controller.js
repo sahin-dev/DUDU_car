@@ -13,7 +13,7 @@ const postReview = catchAsync(async (req, res) => {
 });
 
 const getAllReviews = catchAsync(async (req, res) => {
-  const result = await ReviewService.getAllReviews(req.user, req.query);
+  const result = await ReviewService.getDriverRating( req.query);
   sendResponse(res, {
     statusCode: 200,
     success: true,

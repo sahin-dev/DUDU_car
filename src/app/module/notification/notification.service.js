@@ -38,7 +38,6 @@ const sendNotification = async (token,payload)=>{
    return messageData
   }catch(err){
     console.log("firebase: message sending failed!")
-    throw err
   }
   
 }

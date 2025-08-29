@@ -97,7 +97,7 @@ const updateOnlineStatus = socketCatchAsync(async (socket, io, payload) => {
 });
 
 const requestTrip = socketCatchAsync(async (socket, io, payload) => {
-  console.log(payload)
+  
   validateSocketFields(socket, payload, [
     "pickUpAddress",
     "pickUpLat",
@@ -107,13 +107,24 @@ const requestTrip = socketCatchAsync(async (socket, io, payload) => {
     "dropOffLong",
     "duration",
     "distance",
+
      //filed to recognised the trip type, ride or pre-book ride
   ]);
+
+  if (payload.tripType === EnumTripType.PREBOOK){
+    validateSocketFields(socket,payload, ["pickUpDate"])
+  }
+
+
+  if (new Date(payload.pickUpDate) < Date.now()){
+    emitError(socket, status.BAD_REQUEST, "Pickup date must be in future");
+  }
 
   const tripData = {
     user: payload.userId,
     pickUpAddress: payload.pickUpAddress,
     tripType: payload.tripType,
+    pickUpDate: (payload.tripType === EnumTripType.PREBOOK? payload.pickUpDate: null),
     pickUpCoordinates: {
       coordinates: [Number(payload.pickUpLong), Number(payload.pickUpLat)],
     },
@@ -131,6 +142,7 @@ const requestTrip = socketCatchAsync(async (socket, io, payload) => {
     ),
     isPeakHourApplied: await isPeakHour(),
     isCouponApplied: payload.coupon ? true : false,
+    paymentType: payload.paymentType || "coin"
   };
 
   const trip = await Trip.create(tripData);
@@ -140,8 +152,6 @@ const requestTrip = socketCatchAsync(async (socket, io, payload) => {
       select: "name phoneNumber profile_image",
     },
   ]);
-
-  console.log("Trip: ",trip)
 
   socket.emit(
     EnumSocketEvent.TRIP_REQUESTED,
@@ -293,11 +303,12 @@ const acceptTrip = socketCatchAsync(async (socket, io, payload) => {
         { $set: { isAvailable: false } },
         { new: true, session }
       );
+      if (!driver) emitError(socket, status.NOT_FOUND, "Driver not found");
 
-      const driverRating = await ReviewService.getDriverRating({userId: driverId}, {});
+      const driverRating = await ReviewService.getDriverRating({driverId: driverId});
       
 
-      if (!driver) emitError(socket, status.NOT_FOUND, "Driver not found");
+      
       acceptedTrip.driver.rating = driverRating.averageRating;
 
       return acceptedTrip
@@ -619,6 +630,7 @@ const updateTripStatus = socketCatchAsync(async (socket, io, payload) => {
           TripStatus.NO_SHOW,
         ].includes(newStatus)
       ) {
+        
         await updateDriverAvailability(
           updatedTrip,
           socket,
@@ -699,7 +711,7 @@ const sendMessage = socketCatchAsync(async (socket, io, payload) => {
 
 // utility functions =============================================================================================================================
 
-const handleStatusNotifications = (io, trip, newStatus) => {
+const handleStatusNotifications = async (io, trip, newStatus) => {
   const eventName = EnumSocketEvent.TRIP_UPDATE_STATUS;
   const messageMap = {
     [TripStatus.ON_THE_WAY]: {
@@ -735,6 +747,13 @@ const handleStatusNotifications = (io, trip, newStatus) => {
       driver: "The user is marked as no show",
     },
   };
+
+  if (trip.driver){
+    const driverRating = await ReviewService.getDriverRating({driverId:trip.driver._id})
+    trip.driver.rating = driverRating.averageRating
+  }
+
+ 
 
   // Notify user
   io.to(trip.user._id.toString()).emit(
@@ -848,6 +867,9 @@ const updateDriverAvailability = async (
   activeDrivers,
   session
 ) => {
+  console.log(trip)
+  if (trip.driver){
+    
   await User.findByIdAndUpdate(
     trip.driver,
     {
@@ -861,6 +883,7 @@ const updateDriverAvailability = async (
   );
 
   activeDrivers.set(trip.driver.toString(), socket);
+  }
 };
 
 // Schedule a cron job to run every Sunday at midnight for removing OnlineSessions without a duration field

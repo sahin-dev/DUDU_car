@@ -77,8 +77,8 @@ const EnumTripExtraChargeType = {
 };
 
 const EnumTripType = {
-  INSTANT: "INSTANT",
-  SCHEDULED: "SCHEDULED",
+  RIDE: "ride",
+  PREBOOK: "pre_book",
 };
 
 module.exports = {

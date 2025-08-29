@@ -10,6 +10,7 @@ const {
   EnumPaymentFor,
   EnumPaymentType,
 } = require("../../../util/enum");
+const Trip = require("../trip/Trip");
 
 
 
@@ -58,7 +59,22 @@ const verifyPayment = async (payload)=>{
 }
 
 
-const createPayment = async (paymentData)=>{
+const createPayment = async (payload)=>{
+
+  const {tripId} = payload
+  const trip = await Trip.findById(tripId)
+
+  const paymentData = {
+    user: trip.user._id,
+    driver: trip.driver._id,
+    trip: trip._id,
+    amountInCoins: trip.finalFareInCoins,
+    amountInCash: trip.finalFare,
+    paymentFor: EnumPaymentFor.TRIP,
+    paymentType: trip.paymentType == 'coin'? EnumPaymentType.COIN: EnumPaymentType.CASH
+
+  }
+
 
   const payment = await Payment.create(paymentData)
 

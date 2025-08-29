@@ -1,8 +1,0 @@
-
-
-POST  https://sandbox-payment.fiuu.com/RMS/pay/
-Content-Type: application/json
-
-{
-   "MerchantID": "SB_duducaf"
-}

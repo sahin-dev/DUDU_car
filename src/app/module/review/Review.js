@@ -9,6 +9,11 @@ const reviewSchema = new Schema(
       ref: "User",
       required: true,
     },
+    driver:{
+      type:ObjectId,
+      ref:"User",
+      required:true
+    },
     rating: {
       type: Number,
       min: 1,

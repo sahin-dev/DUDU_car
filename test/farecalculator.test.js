@@ -1,5 +1,5 @@
-// __tests__/fareCalculator.test.js
-const fareCalculator = require("../src/util/fareCalculator"); // adjust path
+
+const fareCalculator = require("../src/util/fareCalculator");
 const Fare = require("../src/app/module/trip/Fare");
 const isPeakHour = require("../src/util/isPeakHour");
 
