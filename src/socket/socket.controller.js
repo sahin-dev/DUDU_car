@@ -264,7 +264,7 @@ const acceptTrip = socketCatchAsync(async (socket, io, payload) => {
     const result = await session.withTransaction(async () => {
       // 1️⃣ Atomically try to grab & update the trip
       const updatedTrip = await Trip.findOneAndUpdate(
-        { _id: tripId, status: TripStatus.REQUESTED },
+        { _id: tripId, status: TripStatus.REQUESTED }, // only accept if still REQUESTED
         {
           $set: {
             driverTripAcceptedAt: Date.now(),
@@ -323,7 +323,7 @@ const acceptTrip = socketCatchAsync(async (socket, io, payload) => {
         tripTimeouts.delete(result._id.toString());
       }
 
-  
+      
 
       io.to(result.user._id.toString()).emit(
         EnumSocketEvent.TRIP_ACCEPTED,

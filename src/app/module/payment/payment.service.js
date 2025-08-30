@@ -59,20 +59,35 @@ const verifyPayment = async (payload)=>{
 }
 
 
-const createPayment = async (payload)=>{
+const createPayment = async (userId,payload)=>{
+
+  validateFields(payload, ["amountInCash", "amountInCoins", "paymentFor", "paymentType"])
+
+  if(payload.paymentFor === EnumPaymentFor.TRIP){
+    validateFields(payload, ["tripId", "driverId"])
+  }
+
 
   const {tripId} = payload
   const trip = await Trip.findById(tripId)
 
-  const paymentData = {
-    user: trip.user._id,
-    driver: trip.driver._id,
-    trip: trip._id,
-    amountInCoins: trip.finalFareInCoins,
-    amountInCash: trip.finalFare,
-    paymentFor: EnumPaymentFor.TRIP,
+  let paymentData = {
+    user: userId,
+    
+    paymentFor: payload.paymentFor,
     paymentType: trip.paymentType == 'coin'? EnumPaymentType.COIN: EnumPaymentType.CASH
 
+  }
+
+  if (payload.paymentFor === EnumPaymentFor.TRIP) {
+    paymentData.trip = tripId
+    paymentData.driver = payload.driverId
+    paymentData.amountInCash = payload.amountInCash || 0
+    paymentData.amountInCoins = payload.amountInCoins || 0
+  } 
+  else if (payload.paymentFor === EnumPaymentFor.COIN_PURCHASE) {
+    paymentData.amountForCoinPurchase = payload.amountForCoinPurchase || 0
+    paymentData.amountInCash = payload.amountInCash || 0
   }
 
 
@@ -96,7 +111,7 @@ const getPayment = async (userData, query) => {
 };
 
 const getAllPayments = async (userData, query) => {
-  const paymentQuery = new QueryBuilder(Payment.find({}).lean(), query)
+  const paymentQuery = new QueryBuilder(Payment.find({}).populate([{path:"user", select:"name profile_image email"}]).lean(), query)
     .search([])
     .filter()
     .sort()

@@ -15,16 +15,19 @@ const paymentSchema = new Schema(
     driver: {
       type: ObjectId,
       ref: "User",
+      required: false
     },
     trip: {
       type: ObjectId,
       ref: "Trip",
+      required:false
     },
     amountForCoinPurchase: {
       type: Number,
     },
     amountInCoins: {
       type: Number,
+      required: false
     },
     amountInCash: {
       type: Number,

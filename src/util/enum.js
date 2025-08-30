@@ -49,6 +49,7 @@ const EnumSocketEvent = {
   TRIP_DRIVER_LOCATION_UPDATE: "trip_driver_location_update",
   TRIP_REQUESTED: "trip_requested",
   TRIP_ACCEPTED: "trip_accepted",
+  TRIP_SCHEDULED: "trip_scheduled",
   TRIP_UPDATE_STATUS: "trip_update_status",
 
   START_CHAT: "start_chat",
