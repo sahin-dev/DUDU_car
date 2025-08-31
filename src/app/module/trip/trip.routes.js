@@ -9,7 +9,7 @@ router
   .get("/get-trip", auth(config.auth_level.user), TripController.getTrip)
   .get(
     "/get-all-trips",
-    auth(config.auth_level.admin),
+    auth(config.auth_level.user),
     TripController.getAllTrips
   )
   .delete(

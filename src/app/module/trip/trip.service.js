@@ -16,6 +16,7 @@ const getTimeRange = require("../../../util/getTimeRage");
 const { default: mongoose } = require("mongoose");
 const fareCalculator = require("../../../util/fareCalculator");
 const ReviewService = require("../review/review.service");
+const User = require("../user/User");
 
 const getTrip = async (userData, query) => {
   validateFields(query, ["tripId"]);
@@ -384,6 +385,21 @@ const updateTogglePeakHours = async (userData, payload) => {
 
 // utility functions ==================
 
+const updateTripStatus = async (tripId, status) => {  
+  const trip = await Trip.findByIdAndUpdate(
+    tripId,
+    { status },
+    { new: true }
+  );
+  
+  if (status === TripStatus.STARTED){
+    await User.findByIdAndUpdate(trip.driver._id, {isAvailable:false})
+  }
+  if (!trip) throw new ApiError(status.NOT_FOUND, "Trip not found");
+  return trip;
+}
+
+
 const TripService = {
   getTrip,
   getAllTrips,
@@ -397,6 +413,7 @@ const TripService = {
   postTimeRange,
   deleteTimeRange,
   updateTogglePeakHours,
+  updateTripStatus
 };
 
 module.exports = TripService;

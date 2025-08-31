@@ -17,7 +17,7 @@ app.use("/uploads", express.static("uploads"));
 app.use("/", routes);
 
 app.get("/", async (req, res) => {
-  res.json("Welcome to Dudu");
+  res.json("Welcome to Dudu Car API");
 });
 
 app.use(globalErrorHandler);
