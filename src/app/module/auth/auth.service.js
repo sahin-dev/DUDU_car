@@ -238,8 +238,6 @@ const loginAccount = async (payload) => {
     config.jwt.expires_in
   );
 
-
-
   return {
     accessToken,
   };

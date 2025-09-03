@@ -15,7 +15,7 @@ const QueryBuilder = require("../../../builder/queryBuilder");
 const Car = require("../car/Car");
 const Admin = require("../admin/Admin");
 const Trip = require("../trip/Trip");
-const { default: mongoose } = require("mongoose");
+const { default: mongoose, mongo } = require("mongoose");
 const Payment = require("../payment/Payment");
 const Announcement = require("./Announcement");
 const Fare = require("../trip/Fare");
@@ -276,6 +276,9 @@ const growth = async (query) => {
 
 const getUser = async (query) => {
   validateFields(query, ["userId"]);
+  if (mongoose.Types.ObjectId.isValid(query.userId) === false)
+    throw new ApiError(status.BAD_REQUEST, "Invalid userId");
+  
   const user = await User.findById(query.userId).populate("authId").lean();
   if (!user) throw new ApiError(status.NOT_FOUND, "User not found");
   return user;
