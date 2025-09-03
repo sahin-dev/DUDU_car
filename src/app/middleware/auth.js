@@ -11,6 +11,7 @@ const auth =
     try {
       const tokenWithBearer = req.headers.authorization;
 
+
       if (!tokenWithBearer && !isAccessible) return next();
 
       if (!tokenWithBearer)

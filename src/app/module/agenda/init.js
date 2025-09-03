@@ -20,7 +20,7 @@ class JobScheduler {
         
     }
 
-    init (){
+    init () {
         try{
             this.agenda = new Agenda({
                 db: { address: config.database_url, collection: "agendaJobs" }
@@ -115,8 +115,5 @@ class JobScheduler {
     }
 
  }
-
-
-
 
 module.exports =  new JobScheduler()

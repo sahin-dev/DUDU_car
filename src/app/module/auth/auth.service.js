@@ -246,9 +246,9 @@ const loginAccount = async (payload) => {
 };
 
 const socialLogin = async (payload) => {
-  validateFields(payload, ["email", "name", "role", "provider", "token"]);
+  validateFields(payload, ["email", "name", "role", "provider", "token", "deviceId"]);
 
-  const { email, name, role, provider, profile_image, address, phoneNumber, token } =
+  const { email, name, role, provider, profile_image, address, phoneNumber, token,deviceId } =
     payload || {};
 
   if (provider === LoginProvider.LOCAL)
