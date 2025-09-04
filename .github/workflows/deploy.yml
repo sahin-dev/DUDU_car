@@ -1,0 +1,93 @@
+name: Deploy Node.js with TypeScript on EC2
+
+on:
+    push:
+        branches:
+            - 'release'
+    pull_request:
+        branches:
+            - 'release'
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@v3
+
+            - name: Set up Node.js
+              uses: actions/setup-node@v3
+              with:
+                  node-version: '20.10.0'
+
+            - name: Install Dependencies
+              run: npm install --frozen-lockfile
+
+            - name: Install TypeScript Compiler
+              run: npm install -g typescript
+
+            - name: Build Project
+              run: npm run build
+
+    deploy:
+        runs-on: ubuntu-latest
+        needs: build
+
+        steps:
+            - uses: actions/checkout@v3
+
+            - name: Set up Node.js
+              uses: actions/setup-node@v3
+              with:
+                  node-version: '20.17'
+
+            - name: Install Dependencies
+              run: npm install --frozen-lockfile
+
+            - name: Build Project
+              run: npm run build
+
+            # Configure SSH access to the EC2 instance
+            - name: Configure SSH
+              env:
+                  SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }} # SSH key for access
+              run: |
+                  mkdir -p ~/.ssh
+                  echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+                  chmod 600 ~/.ssh/id_rsa  # Set the correct permissions for the private key
+                  ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts  # Add the EC2 host to known hosts
+
+            # Install PM2 on EC2 (with sudo if necessary)
+            - name: Install PM2 on EC2
+              run: |
+                  ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "sudo npm install -g pm2"  # Add sudo to PM2 installation
+
+            # Deploy the backend application to EC2 (this is where we create the 'backend' folder)------------
+            - name: Deploy Backend to EC2
+              env:
+                  EC2_HOST: ${{ secrets.EC2_HOST }} # EC2 Host URL or IP address
+                  EC2_USER: ${{ secrets.EC2_USER }} # EC2 SSH username (e.g., ubuntu)
+                  ENV_VARS_JSON: ${{ secrets.ENV_VARS_JSON }} # Pass the environment variables JSON
+              run: |
+                  # Create application directories on EC2 if they don't exist
+                  ssh $EC2_USER@$EC2_HOST "mkdir -p ~/applications/backend"
+
+                  # Copy the backend project to EC2 using `rsync`
+                  rsync -avz \
+                    --exclude='.git' \
+                    --exclude='node_modules' \
+                    --exclude='.github' \
+                    . $EC2_USER@$EC2_HOST:~/applications/backend/  # Deploy only the backend files
+
+                  # Install production dependencies on EC2 for the backend
+                  ssh $EC2_USER@$EC2_HOST "cd ~/applications/backend && npm install --frozen-lockfile --production"
+
+                  # Set the environment variables (using the ENV_VARS_JSON secret)
+                  # ssh $EC2_USER@$EC2_HOST "echo '$ENV_VARS_JSON' > ~/applications/backend/.env"
+                  ssh $EC2_USER@$EC2_HOST "echo '$ENV_VARS_JSON' | jq -r 'to_entries | .[] | \"\(.key)=\(.value)\"' > ~/applications/backend/.env"
+
+                  # Stop the existing PM2 process if it exists
+                  ssh $EC2_USER@$EC2_HOST "pm2 delete backend || true"  # Ensures no errors if the process doesn't exist
+
+                  # Start the backend application with PM2
+                  ssh $EC2_USER@$EC2_HOST "cd ~/applications/backend && pm2 start dist/server.js --name backend"
