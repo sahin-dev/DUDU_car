@@ -22,7 +22,7 @@ router
   );
 
   router.post(
-    "/toggle-block-user/:userId",
+    "/toggle-block/:userId",
     auth(config.auth_level.admin),
     UserController.toggoleBlockUser
   );
