@@ -28,6 +28,10 @@ const auth =
         req.user = verifyUser;
 
         const isExist = await Auth.findById(verifyUser?.authId);
+        if(isExist?.isBlocked) {
+          throw new ApiError(httpStatus.UNAUTHORIZED, "Your account has been blocked. Please contact support.");
+        }
+      
         if (
           verifyUser.role ===
             Object.values(EnumUserRole).includes(verifyUser.role) &&

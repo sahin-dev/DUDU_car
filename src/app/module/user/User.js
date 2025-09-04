@@ -108,6 +108,8 @@ const UserSchema = new Schema(
       type: Number,
       min: 0,
     },
+   
+    // outstanding fee from previous trips
     outstandingFee: {
       type: Number,
       default: 0,

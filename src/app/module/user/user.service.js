@@ -95,6 +95,13 @@ const getDriverStats = async (userId)=>{
   
 }
 
+const deleteAccount = async (userId) => { 
+  const user = await User.findById(userId);
+  if (!user) throw new ApiError(status.NOT_FOUND, "User not found");
+  await Auth.deleteOne({ _id: user.authId });
+  await User.deleteOne({ _id: userId });
+}
+
 const UserService = {
   getProfile,
   deleteMyAccount,

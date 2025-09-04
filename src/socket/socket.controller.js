@@ -261,13 +261,19 @@ const acceptTrip = socketCatchAsync(async (socket, io, payload) => {
   const session = await mongoose.startSession();
 
   try {
-    const trip = await Trip.findById(tripId)
-    let newTripStatus = TripStatus.ACCEPTED
-    if (trip.tripType === EnumTripType.PREBOOK){
-        newTripStatus = TripStatus.SCHEDULED
-    }
+    
 
     const result = await session.withTransaction(async () => {
+      
+      const trip = await Trip.findOne({ _id: tripId,status: TripStatus.REQUESTED }).session(session);
+      // If no document was modified another driver already accepted
+      if (!trip)
+        emitError(socket, status.CONFLICT, "Trip no longer available");
+
+      let newTripStatus = TripStatus.ACCEPTED
+      if (trip.tripType === EnumTripType.PREBOOK){
+          newTripStatus = TripStatus.SCHEDULED
+      }
       // 1️⃣ Atomically try to grab & update the trip
       const updatedTrip = await Trip.findOneAndUpdate(
         { _id: tripId, status: TripStatus.REQUESTED }, // only accept if still REQUESTED
@@ -291,9 +297,8 @@ const acceptTrip = socketCatchAsync(async (socket, io, payload) => {
         }
       ).lean();
 
-      // If no document was modified another driver already accepted
-      if (!updatedTrip)
-        emitError(socket, status.CONFLICT, "Trip no longer available");
+      
+      
 
       // 2️⃣ Deep-populate in a second query (required for nested paths)
       const acceptedTrip = await Trip.findById(updatedTrip._id)
