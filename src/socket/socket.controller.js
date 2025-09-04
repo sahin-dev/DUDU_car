@@ -267,9 +267,12 @@ const acceptTrip = socketCatchAsync(async (socket, io, payload) => {
     const result = await session.withTransaction(async () => {
       
       const trip = await Trip.findOne({ _id: tripId,status: TripStatus.REQUESTED }).session(session);
-      // If no document was modified another driver already accepted
-      if (!trip)
-        emitError(socket, status.CONFLICT, "Trip no longer available");
+
+      if (!trip) {  
+        emitError(socket, status.NOT_FOUND, "Trip not found or no longer available");
+        return null;
+      }
+     
 
       let newTripStatus = TripStatus.ACCEPTED
       if (trip.tripType === EnumTripType.PREBOOK){
@@ -298,7 +301,9 @@ const acceptTrip = socketCatchAsync(async (socket, io, payload) => {
         }
       ).lean();
 
-      
+       // If no document was modified another driver already accepted
+      if (!updatedTrip)
+        emitError(socket, status.CONFLICT, "Trip no longer available");
       
 
       // 2️⃣ Deep-populate in a second query (required for nested paths)
@@ -681,7 +686,9 @@ const sendMessage = socketCatchAsync(async (socket, io, payload) => {
 
     // notify both user and driver upon new message
     // postNotification("New message", message, receiverId);
-    await NotificationService.sendNotificationByUserId(receiverId, "New message", message, {chatId})
+    await NotificationService.sendNotificationByUserId(receiverId, {title:"New Message", message}, {chatId})
+  
+
     //Disable notification for sender
     // postNotification("New message", message, userId);
 

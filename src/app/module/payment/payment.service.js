@@ -69,7 +69,7 @@ const createPayment = async (userId,payload)=>{
 
 
   const {tripId} = payload
-  const trip = await Trip.findById(tripId)
+  const trip = await Trip.findById(tripId).populate('user').lean()
 
   let paymentData = {
     user: userId,
@@ -78,6 +78,15 @@ const createPayment = async (userId,payload)=>{
     paymentType: trip.paymentType == 'coin'? EnumPaymentType.COIN: EnumPaymentType.CASH
 
   }
+
+  if (trip.paymentType == 'coin' && payload.amountInCoins <= 0) {
+    throw new ApiError(status.BAD_REQUEST, "Amount in coins must be greater than zero for coin payments");
+  }
+
+  if(trip.amountInCoins > trip.user.coins){
+    throw new ApiError(status.BAD_REQUEST, "User does not have enough coins");
+  }
+
 
   if (payload.paymentFor === EnumPaymentFor.TRIP) {
     paymentData.trip = tripId
