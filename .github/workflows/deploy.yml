@@ -70,7 +70,7 @@ jobs:
                   ENV_VARS_JSON: ${{ secrets.ENV_VARS_JSON }} # Pass the environment variables JSON
               run: |
                   # Create application directories on EC2 if they don't exist
-                  ssh $EC2_USER@$EC2_HOST "mkdir -p ~/applications/backend"
+                  ssh "${EC2_USER}@${EC2_HOST}" "mkdir -p ~/applications/backend"
 
                   # Copy the backend project to EC2 using `rsync`
                   rsync -avz \
