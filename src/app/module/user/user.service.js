@@ -89,29 +89,18 @@ const getDriverStats = async (userId)=>{
   }
 
  const trip = await Trip.aggregate([{$match:{_id:userId}}]).exec()
- console.log(trip)
 
  return trip
   
 }
 
 
-const toggoleBlockUser = async (userId) => { 
-  const user = await User.findById(userId);
-  if (!user) throw new ApiError(status.NOT_FOUND, "User not found");
-  const auth = await Auth.findById(user.authId);
-  if (!auth) throw new ApiError(status.NOT_FOUND, "Auth not found");
-  
-  auth.isBlocked = !auth.isBlocked;
-  await auth.save();
-}
 
 const UserService = {
   getProfile,
   deleteMyAccount,
   updateProfile,
   getDriverStats,
-  toggoleBlockUser
 };
 
 module.exports = { UserService };

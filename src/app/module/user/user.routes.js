@@ -21,10 +21,4 @@ router
     UserController.deleteMyAccount
   );
 
-  router.post(
-    "/toggle-block/:userId",
-    auth(config.auth_level.admin),
-    UserController.toggoleBlockUser
-  );
-
 module.exports = router;
