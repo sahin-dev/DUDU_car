@@ -24,6 +24,7 @@ const Message = require("../app/module/chat/Message");
 const validateFields = require("../util/validateFields");
 const isPeakHour = require("../util/isPeakHour");
 const ReviewService = require("../app/module/review/review.service");
+const NotificationService = require("../app/module/notification/notification.service");
 
 // trip socket =============================================================================================================================
 // track active timeouts for trip cancellation
@@ -679,7 +680,8 @@ const sendMessage = socketCatchAsync(async (socket, io, payload) => {
     });
 
     // notify both user and driver upon new message
-    postNotification("New message", message, receiverId);
+    // postNotification("New message", message, receiverId);
+    await NotificationService.sendNotificationByUserId(receiverId, "New message", message, {chatId})
     //Disable notification for sender
     // postNotification("New message", message, userId);
 

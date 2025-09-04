@@ -47,11 +47,23 @@ const getDriverStates = catchAsync(async (req,res)=>{
   })
 })
 
+
+const toggoleBlockUser = catchAsync(async (req, res) => {
+  const {userId} = req.params
+  await UserService.toggoleBlockUser(userId); 
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "User block status toggled!",
+  });
+});
+
 const UserController = {
   deleteMyAccount,
   getProfile,
   updateProfile,
-  getDriverStates
+  getDriverStates,
+  toggoleBlockUser
 };
 
 module.exports = { UserController };

@@ -9,24 +9,25 @@ const firebaseClient = require("./firebase-admin")
 const User = require('../user/User')
 
 
-const sendNotificationByUserId = async (userId, payload)=>{
+const sendNotificationByUserId = async (userId, payload,data)=>{
   const user = await User.findById(userId)
   
   if(!user){
     throw new ApiError(status.NOT_FOUND, "User does not exist")
   }
 
+
   validateFields(payload, ["title", "message"])
 
   if(user.token){
     console.log(user.token)
     console.log("notification send: ", user._id)
-    await sendNotification(user.token, payload)
+    await sendNotification(user.token, payload, data)
   }
 }
 
 //This service only for test the notification
-const sendNotification = async (token,payload)=>{
+const sendNotification = async (token,payload, data)=>{
   const {title = "Test Notification", message = "This is a test notification"} = payload
  
   try{
@@ -34,7 +35,7 @@ const sendNotification = async (token,payload)=>{
     if(!token){
       throw new ApiError(status.BAD_REQUEST, "token must not be empty")
     }
-   const messageData =  await firebaseClient.messaging().send({notification:{title,body:message}, token})
+   const messageData =  await firebaseClient.messaging().send({notification:{title,body:message}, token, data})
    return messageData
   }catch(err){
     console.log("firebase: message sending failed!")
