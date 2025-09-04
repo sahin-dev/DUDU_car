@@ -141,6 +141,7 @@ const tripSchema = new Schema(
           TripStatus.COMPLETED,
           TripStatus.CANCELLED,
           TripStatus.NO_SHOW,
+          TripStatus.SCHEDULED,
         ],
         message: `Invalid trip status. Allowed values: ${Object.values(
           TripStatus

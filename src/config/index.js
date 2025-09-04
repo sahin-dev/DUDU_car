@@ -21,6 +21,7 @@ const config = {
   base_url: process.env.BASE_URL,
   database_url: process.env.MONGO_URL,
   firebaseKeys: process.env.FIREBASE_CREDENTIALS,
+  apple_client_id: process.env.APPLE_CLIENT_ID, 
   auth_level: {
     user: ["USER", "DRIVER", "ADMIN", "SUPER_ADMIN"],
     driver: ["DRIVER", "ADMIN", "SUPER_ADMIN"],

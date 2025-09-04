@@ -261,6 +261,12 @@ const acceptTrip = socketCatchAsync(async (socket, io, payload) => {
   const session = await mongoose.startSession();
 
   try {
+    const trip = await Trip.findById(tripId)
+    let newTripStatus = TripStatus.ACCEPTED
+    if (trip.tripType === EnumTripType.PREBOOK){
+        newTripStatus = TripStatus.SCHEDULED
+    }
+
     const result = await session.withTransaction(async () => {
       // 1️⃣ Atomically try to grab & update the trip
       const updatedTrip = await Trip.findOneAndUpdate(
@@ -268,7 +274,7 @@ const acceptTrip = socketCatchAsync(async (socket, io, payload) => {
         {
           $set: {
             driverTripAcceptedAt: Date.now(),
-            status: TripStatus.ACCEPTED,
+            status: newTripStatus,
             driver: driverId,
             driverCoordinates: {
               coordinates: [Number(payload.lat), Number(payload.long)],
@@ -300,7 +306,7 @@ const acceptTrip = socketCatchAsync(async (socket, io, payload) => {
 
       const driver = await User.findByIdAndUpdate(
         driverId,
-        { $set: { isAvailable: false } },
+        { $set: { isAvailable: newTripStatus === TripStatus.SCHEDULED } },
         { new: true, session }
       );
       if (!driver) emitError(socket, status.NOT_FOUND, "Driver not found");
@@ -669,7 +675,8 @@ const sendMessage = socketCatchAsync(async (socket, io, payload) => {
 
     // notify both user and driver upon new message
     postNotification("New message", message, receiverId);
-    postNotification("New message", message, userId);
+    //Disable notification for sender
+    // postNotification("New message", message, userId);
 
     Promise.all([
       Chat.updateOne({ _id: chatId }, { $push: { messages: newMessage._id } }),

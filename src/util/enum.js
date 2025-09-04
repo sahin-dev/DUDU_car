@@ -69,6 +69,7 @@ const TripStatus = {
   COMPLETED: "completed",
   CANCELLED: "cancelled",
   NO_SHOW: "no_show",
+  SCHEDULED: "scheduled",
 };
 
 const EnumTripExtraChargeType = {

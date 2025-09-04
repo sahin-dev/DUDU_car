@@ -2,6 +2,7 @@ const { AuthService } = require("./auth.service");
 const sendResponse = require("../../../util/sendResponse");
 const catchAsync = require("../../../util/catchAsync");
 const config = require("../../../config");
+const { oauthService } = require("./oauth.service");
 
 const registrationAccount = catchAsync(async (req, res) => {
   const result = await AuthService.registrationAccount(req.body);
@@ -122,6 +123,26 @@ const logout = catchAsync(async (req, res) => {
   });
 });
 
+
+const oAuthLogin = catchAsync(async (req, res) => {
+    const { provider, token, role, phoneType, playerId } = req.body;
+   
+    const result = await oauthService.loginWithOAuth(
+        provider,
+        token,
+        role,
+        phoneType,
+        playerId
+    );
+    
+    sendResponse(res, {
+        statusCode: 200,
+        success: true,
+        message: 'User login successfully',
+        data: result,
+    });
+});
+
 const AuthController = {
   registrationAccount,
   activateAccount,
@@ -132,7 +153,8 @@ const AuthController = {
   resetPassword,
   forgetPassOtpVerify,
   resendActivationCode,
-  logout
+  logout,
+  oAuthLogin
 };
 
 module.exports = { AuthController };

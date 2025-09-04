@@ -22,5 +22,5 @@ router
     auth(config.auth_level.user),
     AuthController.changePassword
   );
-
+router.post('/apple-login', AuthController.oAuthLogin);
 module.exports = router;
