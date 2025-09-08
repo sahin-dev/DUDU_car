@@ -4,7 +4,7 @@ const processFileUpdates = (files = {}, fileFields) => {
   const updateData = {};
 
   for (const { key, oldPath } of fileFields) {
-    if (!files[key] || !oldPath) continue;
+    if (!files[key]) continue;
 
     if (Array.isArray(oldPath)) {
       // For arrays: map new paths and unlink old files

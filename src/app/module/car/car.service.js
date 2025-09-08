@@ -56,6 +56,7 @@ const postCar = async (req) => {
     e_hailing_vehicle_permit_pdf: files.e_hailing_vehicle_permit_pdf[0].path,
   };
 
+
   const car = await Car.create(carData);
 
   postNotification("Car created", "A new car has been added to DuDu");
@@ -132,7 +133,6 @@ const updateCar = async (req) => {
     files.car_image || []
   );
 
-  console.log(files)
 
   const fileFields = [
     { key: "car_grant_image", oldPath: car.car_grant_image },
@@ -146,7 +146,7 @@ const updateCar = async (req) => {
   const fileUpdates = processFileUpdates(files, fileFields);
 
   
-
+console.log(fileUpdates)
   const updateData = {
     ...payload,
     ...fileUpdates,

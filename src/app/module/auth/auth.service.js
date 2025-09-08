@@ -472,7 +472,7 @@ const logout = async (userData) => {
   const { authId } = userData;
 
   const auth = await Auth.findById(authId);
-  const user = await User.findOne({ authId: auth._id });
+  const user = await User.findOne({ authId });
   if (!user) throw new ApiError(status.NOT_FOUND, "User not found");
 
   user.token = null; // Clear token to log out
