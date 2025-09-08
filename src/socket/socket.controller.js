@@ -787,8 +787,9 @@ const handleStatusNotifications = async (io, trip, newStatus) => {
     })
   );
   
-  if (newStatus === TripStatus.COMPLETED || newStatus === TripStatus.CANCELLED || newStatus === TripStatus.ACCEPTED)
+  if (newStatus === TripStatus.COMPLETED || newStatus === TripStatus.CANCELLED || newStatus === TripStatus.ACCEPTED || newStatus === TripStatus.SCHEDULED || newStatus === TripStatus.STARTED){
       postNotification(`Trip update`, messageMap[newStatus].rider, trip.user);
+  }
 
   // Notify driver if any
   if (trip.driver) {
