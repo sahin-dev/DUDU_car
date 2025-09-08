@@ -47,6 +47,11 @@ const AuthSchema = new Schema(
       enum: ["USER", "DRIVER", "ADMIN"],
       required: true,
     },
+    appleId:{
+      type: String,
+      unique: true,
+      requied:false
+    },  
     isVerified: {
       type: Boolean,
     },

@@ -245,7 +245,6 @@ const loginAccount = async (payload) => {
 
 const socialLogin = async (payload) => {
   validateFields(payload, ["email", "name", "role", "provider", "token", "deviceId"]);
-
   const { email, name, role, provider, profile_image, address, phoneNumber, token,deviceId } =
     payload || {};
 
@@ -258,10 +257,10 @@ const socialLogin = async (payload) => {
     User.findOne({ email }),
   ]);
 
-
-  if( auth.deviceId && (auth.deviceId !== deviceId)){
+  if(auth && auth.deviceId && (auth.deviceId !== deviceId)){
     throw new ApiError(status.BAD_REQUEST, "You are already logged in from another device");
   }
+
 
   if (!auth) {
     const authData = {
@@ -290,6 +289,8 @@ const socialLogin = async (payload) => {
 
     message = `Account created successfully`;
   }
+
+  
 
   //update token for social login
   await User.updateOne({authId:auth._id}, {token})

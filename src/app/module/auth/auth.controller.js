@@ -125,15 +125,9 @@ const logout = catchAsync(async (req, res) => {
 
 
 const oAuthLogin = catchAsync(async (req, res) => {
-    const { provider, token, role, phoneType, playerId } = req.body;
+    
    
-    const result = await oauthService.loginWithOAuth(
-        provider,
-        token,
-        role,
-        phoneType,
-        playerId
-    );
+    const result = await oauthService.loginWithOAuth(req.body);
     
     sendResponse(res, {
         statusCode: 200,

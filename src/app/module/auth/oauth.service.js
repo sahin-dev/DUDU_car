@@ -3,13 +3,17 @@ const User = require("../user/User");
 const httpStatus = require("http-status");
 const appleSigninAuth  = require('apple-signin-auth');
 const config = require("../../../config");
+const Auth = require("./Auth");
+const validateFields = require("../../../util/validateFields");
+const { jwtHelpers } = require("../../../util/jwtHelpers");
 
 const loginWithOAuth = async (
-    provider,
-    token,
-    role = 'user',
-    playerId
+   payload
 ) => {
+
+    validateFields(payload, ['provider', 'appleToken', 'role', 'deviceId', "token"]);
+    const { provider, appleToken, role, deviceId, token } = payload || {};
+
      if (!['google', 'apple', 'facebook'].includes(provider)) {
         throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid provider');
     }
@@ -18,8 +22,9 @@ const loginWithOAuth = async (
 
     try {
         if (provider === 'apple') {
+         
             try {
-                const appleUser = await appleSigninAuth.verifyIdToken(token, {
+                const appleUser = await appleSigninAuth.verifyIdToken(appleToken, {
                     audience: config.apple_client_id,
                     ignoreExpiration: false,
                 });
@@ -27,9 +32,9 @@ const loginWithOAuth = async (
                 if (!appleUser || !appleUser.sub) {
                     throw new ApiError(400, 'Invalid Apple token payload');
                 }
-
+                console.log(appleUser)
                 email = appleUser?.email || ' ';
-                id = appleUser.sub;
+                appleId = appleUser.sub;
                 name = 'Apple User';
                 picture = '';
             } catch (err) {
@@ -42,41 +47,45 @@ const loginWithOAuth = async (
             throw new ApiError(400, 'Unsupported OAuth provider');
         }
 
-        // Find or create user
-        let user = await User.findOne({ [`${provider}Id`]: id });
+        let [auth, user] = await Promise.all([
+            Auth.isAuthExist(email),
+            User.findOne({ email }),
+          ]);
 
+        // Find or create user
         
-        if (!user) {
+        if (!auth) {
+            validateFields(payload, ["phoneNumber"]);
             const session = await mongoose.startSession();
             session.startTransaction();
 
             try {
-                user = new User({
-                    email,
-                    [`${provider}Id`]: id,
+
+                const authData = {
                     name,
-                    profilePic: picture,
+                    email,
                     role,
-                    isVerified: true,
-                    playerIds: playerId ? [playerId] : [],
-                });
+                    provider,
+                    deviceId,
+                    isActive: true,
+                    };
+                auth = new Auth(authData);
 
-                await user.save({ session });
+                await auth.save({ session });
 
-                const nameParts = name.split(' ');
-                const firstName = nameParts[0];
-                const lastName = nameParts[1] || '';
+                
+                const userData = {
+                    authId: auth._id,
+                    name,
+                    email,
+                    role,
+                    phoneNumber,
+                    ...(profile_image && { profile_image }),
+                    ...(address && { address }),
+                    };
 
-                const result = await NormalUser.create(
-                    [
-                        {
-                            firstName,
-                            lastName,
-                            user: user._id,
-                            email,
-                            profile_image: picture,
-                        },
-                    ],
+                const user = await User.create(
+                        userData,
                     { session }
                 );
 
@@ -98,52 +107,23 @@ const loginWithOAuth = async (
                         'Something went wrong please try again letter'
                 );
             }
-        } else {
-            if (playerId) {
-                const currentPlayerIds = user.playerIds || [];
-
-                // If already exists, remove it first (to avoid duplicates)
-                const filtered = currentPlayerIds.filter(
-                    (id) => id !== playerId
-                );
-
-                // Add the new one to the end
-                filtered.push(playerId);
-
-                // If length > 3, remove from beginning
-                if (filtered.length > 3) {
-                    filtered.shift();
-                }
-
-                user.playerIds = filtered;
-                await user.save();
-            }
-        }
-
-        if (!user) {
-            throw new ApiError(404, 'User not found after creation');
-        }
+        } 
 
         // Prepare JWT tokens
         const jwtPayload = {
-            id: user._id,
-            profileId: user.profileId,
+            userId: user._id,
+            authId: auth._id,
             email: user.email,
             role: user.role ,
         };
 
-        const accessToken = createToken(
+        const accessToken = jwtHelpers.createToken(
             jwtPayload,
             config.jwt_access_secret ,
             config.jwt_access_expires_in 
         );
-        const refreshToken = createToken(
-            jwtPayload,
-            config.jwt_refresh_secret ,
-            config.jwt_refresh_expires_in 
-        );
-
-        return { accessToken, refreshToken };
+    
+        return { accessToken, message:'Account created successfully'};
     } catch (error) {
         console.error('OAuth login error:', error);
 
