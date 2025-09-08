@@ -302,8 +302,11 @@ const acceptTrip = socketCatchAsync(async (socket, io, payload) => {
       ).lean();
 
        // If no document was modified another driver already accepted
-      if (!updatedTrip)
-        emitError(socket, status.CONFLICT, "Trip no longer available");
+      if (!updatedTrip){
+         emitError(socket, status.CONFLICT, "Trip no longer available");
+         return null;
+      }
+       
       
 
       // 2️⃣ Deep-populate in a second query (required for nested paths)
