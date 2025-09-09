@@ -49,7 +49,6 @@ const AuthSchema = new Schema(
     },
     appleId:{
       type: String,
-      unique: true,
       requied:false
     },  
     isVerified: {

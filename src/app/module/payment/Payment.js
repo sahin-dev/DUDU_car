@@ -22,6 +22,10 @@ const paymentSchema = new Schema(
       ref: "Trip",
       required:false
     },
+    orderId:{
+      type: String,
+      required:false
+    },
     amountForCoinPurchase: {
       type: Number,
     },

@@ -15,20 +15,6 @@ const generateHash = require("../../../util/md5");
 const getAllPayments = async (userData, query) => {};
 
 
-const FiuuService = {
-  // FIUU_API_URL=https://www.onlinepayment.com.my/MOLPay/pay/ # Check Fiuu docs for the correct endpoint
-  // FIUU_RETURN_URL=yourApp://payment/success # Your app's custom URL scheme
-  // FIUU_CALLBACK_URL=https://yourdomain.com/api/payment/fiuu-callback
-  // FIUU_NOTIFICATION_URL=https://yourdomain.com/api/payment/fiuu-notification # If applicable
-  merchantId : 'duducar_Dev',
-  Verify_Key:'dcbd7a3f0dbf412a0c2612337b28a9e9',
-  secretKey:'441cb60ed3b0ee418fd41e13dd2b25df',
-
-  generateVcode: generateVcode.bind(this),
-  verifySKey : verifySKey.bind(this)
-};
-
-
 //function to generate unique vcode
 //send vcode to payment request endpoint
 
@@ -49,4 +35,16 @@ function verifySKey(data) {
 }
 
 
-module.exports = FiuuService;
+module.exports = {
+  // FIUU_API_URL=https://www.onlinepayment.com.my/MOLPay/pay/ # Check Fiuu docs for the correct endpoint
+  // FIUU_RETURN_URL=yourApp://payment/success # Your app's custom URL scheme
+  // FIUU_CALLBACK_URL=https://yourdomain.com/api/payment/fiuu-callback
+  // FIUU_NOTIFICATION_URL=https://yourdomain.com/api/payment/fiuu-notification # If applicable
+  merchantId : 'SB_duducar',
+  Verify_Key:'cc90186650dd4ffa3d05bb3528e2a3fa',
+  secretKey:'441cb60ed3b0ee418fd41e13dd2b25df',
+  email:"duducar@domain.com",
+  password:"Duducarmalaysia#2025",
+  generateVcode: generateVcode.bind(this),
+  verifySKey : verifySKey.bind(this)
+};;

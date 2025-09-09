@@ -12,7 +12,7 @@ const loginWithOAuth = async (
 ) => {
 
     validateFields(payload, ['provider', 'appleToken', 'role', 'deviceId', "token"]);
-    const { provider, appleToken, role, deviceId, token } = payload || {};
+    const { provider, appleToken, role, deviceId, token, phoneNumber } = payload || {};
 
      if (!['google', 'apple', 'facebook'].includes(provider)) {
         throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid provider');
@@ -35,7 +35,7 @@ const loginWithOAuth = async (
                 console.log(appleUser)
                 email = appleUser?.email || ' ';
                 appleId = appleUser.sub;
-                name = 'Apple User';
+                name = appleUser?.name || '';
                 picture = '';
             } catch (err) {
                 throw new ApiError(
@@ -67,6 +67,8 @@ const loginWithOAuth = async (
                     role,
                     provider,
                     deviceId,
+                    phoneNumber,
+                    appleId,
                     isActive: true,
                     };
                 auth = new Auth(authData);
@@ -84,15 +86,9 @@ const loginWithOAuth = async (
                     ...(address && { address }),
                     };
 
-                const user = await User.create(
+                user = await User.create(
                         userData,
                     { session }
-                );
-
-                user = await User.findByIdAndUpdate(
-                    user._id,
-                    { profileId: result[0]._id },
-                    { new: true, runValidators: true, session }
                 );
 
                 await session.commitTransaction();
@@ -108,6 +104,8 @@ const loginWithOAuth = async (
                 );
             }
         } 
+
+        await User.updateOne({authId:auth._id}, {token})
 
         // Prepare JWT tokens
         const jwtPayload = {

@@ -1,39 +1,20 @@
-const { default: status } = require("http-status");
+const status = require('http-status')
 const Payment = require("./Payment");
 const QueryBuilder = require("../../../builder/queryBuilder");
 const ApiError = require("../../../error/ApiError");
 const validateFields = require("../../../util/validateFields");
 const { default: mongoose } = require("mongoose");
 const FiuuService = require("./fiuu.service");
+const querystring  = require('querystring')
+const crypto = require('crypto')
 const {
   EnumPaymentStatus,
   EnumPaymentFor,
   EnumPaymentType,
+  TripStatus,
 } = require("../../../util/enum");
 const Trip = require("../trip/Trip");
 
-
-
-
-
-// const initiatePayment = async ()=>{
-//   //sandbox url for fiuu payment srevice
-//     const fiuu_url = `https://sandbox-payment.fiuu.com/RMS/pay/${FiuuService.merchantId}/`
-
-//     const data = {
-//       merchant_ID:FiuuService.merchantId,
-//       orderid:'101',
-//       channel:'credit',
-//       currency:"MY",
-//       amount:11,
-//       bill_name:"Sahin",
-//       bill_email:"abc@example.com",
-//       bill_mobile:'047843932033',
-//       vcode: FiuuService.generateVcode(11, '101')
-//     }
-
-//     return `${fiuu_url}?${querystring.encode(data)}`
-// }
 
 const fiuuNotification = async (payload)=>{
   console.log(payload)
@@ -59,50 +40,95 @@ const verifyPayment = async (payload)=>{
 }
 
 
+const getFiuuCredentials = async ()=>{
+
+}
+
+
+function generateSignature(amount, orderid, merchantId, verifyKey) {
+    const raw = `${amount}${merchantId}${orderid}${verifyKey}`;
+
+    return crypto.createHash("md5").update(raw).digest("hex");
+}
+
+
+const initPayment = async (payload)=>{
+
+  validateFields(payload, ["tripId", "email", "name", "phone"])
+  const {tripId, email, name, phone} = payload
+
+  const trip = await Trip.findOne({_id:tripId, status:TripStatus.COMPLETED})
+  if(!trip)
+  {
+    throw new ApiError(status.NOT_FOUND, "trip not found")
+  }
+  const fiuuUrl = `https://sandbox-payment.fiuu.com/RMS/pay/${FiuuService.merchantId}/index.php`
+
+  const paymentData = {
+    merchant_id: FiuuService.merchantId,
+    orderid: tripId,
+    amount: trip.finalFare || 100,
+    country:"MY",
+    currency:"MYR",
+    bill_name: name,
+    bill_email: email,
+    bill_mobile:phone,
+    vcode:generateSignature(trip.finalFare || 100,tripId,FiuuService.merchantId,FiuuService.Verify_Key)
+          
+  };
+
+  try{
+    const str = querystring.encode(paymentData)
+    return (`${fiuuUrl}?${str}`)
+  }catch(err){
+    console.log(err.message)
+        
+  }
+
+
+}
+
 const createPayment = async (userId,payload)=>{
 
-  validateFields(payload, ["amountInCash", "amountInCoins", "paymentFor", "paymentType"])
+  const { name, email, phone,amount, tripId} = payload;
 
-  if(payload.paymentFor === EnumPaymentFor.TRIP){
-    validateFields(payload, ["tripId", "driverId"])
+  const trip = await Trip.findOne({_id:tripId, status:TripStatus.COMPLETED})
+  if (!trip){
+    throw new ApiError(status.NOT_FOUND, "Trip not found")
   }
 
+  const payment = await Payment.create({
+    trip:trip._id, 
+    user:userId, 
+    driver:trip.driver,
+    amountForCoinPurchase:amount, 
+    orderId:tripId,
+    amountInCash:trip.finalFare, 
+    amountInCoins:trip.finalFareInCoins,
+    paymentFor: tripId? EnumPaymentFor.TRIP: EnumPaymentFor.COIN_PURCHASE,
+    paymentType: trip.paymentType
+  })
 
-  const {tripId} = payload
-  const trip = await Trip.findById(tripId).populate('user').lean()
-
-  let paymentData = {
-    user: userId,
-    
-    paymentFor: payload.paymentFor,
-    paymentType: trip.paymentType == 'coin'? EnumPaymentType.COIN: EnumPaymentType.CASH
-
-  }
-
-  if (trip.paymentType == 'coin' && payload.amountInCoins <= 0) {
-    throw new ApiError(status.BAD_REQUEST, "Amount in coins must be greater than zero for coin payments");
-  }
-
-  if(trip.amountInCoins > trip.user.coins){
-    throw new ApiError(status.BAD_REQUEST, "User does not have enough coins");
-  }
-
-
-  if (payload.paymentFor === EnumPaymentFor.TRIP) {
-    paymentData.trip = tripId
-    paymentData.driver = payload.driverId
-    paymentData.amountInCash = payload.amountInCash || 0
-    paymentData.amountInCoins = payload.amountInCoins || 0
-  } 
-  else if (payload.paymentFor === EnumPaymentFor.COIN_PURCHASE) {
-    paymentData.amountForCoinPurchase = payload.amountForCoinPurchase || 0
-    paymentData.amountInCash = payload.amountInCash || 0
-  }
+  const data = {
+    mp_username: FiuuService.email,
+    mp_password: FiuuService.password,
+    mp_merchant_ID: FiuuService.merchantId,
+    mp_verification_key: FiuuService.Verify_Key,
+    mp_order_ID: tripId,
+    mp_currency: "MYR",
+    mp_country: "MY",
+    mp_amount: amount,
+    mp_bill_description: "Order Payment",
+    mp_bill_name: name,
+    mp_bill_email: email,
+    mp_bill_mobile: phone,
+    mp_channel: "multi",
+    mp_sandbox_mode: true,
+    mp_classic_webcore: true,
+  };
 
 
-  const payment = await Payment.create(paymentData)
-
-  return payment
+  return data
 }
 
 const getPayment = async (userData, query) => {
@@ -281,7 +307,8 @@ const PaymentService = {
   fiuuNotification,
   fiuuCallback,
   verifyPayment,
-  createPayment
+  createPayment,
+  initPayment
 };
 
 module.exports = PaymentService;

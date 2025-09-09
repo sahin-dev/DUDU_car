@@ -9,7 +9,8 @@ router
   .post("/notification", PaymentController.fiuuNotification)
   .post("/callback", PaymentController.fiuuCallback)
   .post("/verify", PaymentController.verifyPayment)
-  .post("/create", PaymentController.createPayment)
+  .post("/create",auth(config.auth_level.user), PaymentController.createPayment)
+  .post("/init",auth(config.auth_level.user), PaymentController.initPayment)
   .get(
     "/get-payment",
     auth(config.auth_level.user),

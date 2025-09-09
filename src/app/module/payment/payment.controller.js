@@ -87,14 +87,30 @@ const verifyPayment = catchAsync (async (req, res)=>{
 
 const createPayment = catchAsync(async (req,res)=>{
   const payload = req.body
+  const {userId} = req.user
 
-  const createdPayment = await PaymentService.createPayment(payload)
+  const createdPayment = await PaymentService.createPayment(userId, payload)
+  console.log(createdPayment)
 
   sendResponse(res, {
     statusCode: 200,
     success: true,
     message: "Payment created",
     data:createdPayment
+  })
+})
+
+const initPayment = catchAsync(async (req,res)=>{
+  const payload = req.body
+  const {userId} = req.user
+
+  const paymentInit = await PaymentService.initPayment(payload)
+
+  sendResponse(res, {
+    statusCode:200,
+    success:true,
+    message:"Payment initiated",
+    data:paymentInit
   })
 })
 
@@ -105,7 +121,8 @@ const PaymentController = {
   fiuuNotification,
   fiuuCallback,
   verifyPayment,
-  createPayment
+  createPayment,
+  initPayment
 };
 
 module.exports = PaymentController;
