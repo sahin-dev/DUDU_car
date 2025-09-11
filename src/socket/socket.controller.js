@@ -269,7 +269,16 @@ const acceptTrip = socketCatchAsync(async (socket, io, payload) => {
       const trip = await Trip.findOne({ _id: tripId,status: TripStatus.REQUESTED }).session(session);
 
       if (!trip) {  
-        emitError(socket, status.NOT_FOUND, "Trip not found or no longer available");
+        // emitError(socket, status.NOT_FOUND, "Trip not found or no longer available");
+        console.log("No trip found")
+        socket.emit(
+        EnumSocketEvent.TRIP_ACCEPTED,
+        emitResult({
+          statusCode: status.NOT_FOUND,
+          success: false,
+          message: `Trip not found or no longer available`,
+        })
+      );
         return null;
       }
      
@@ -303,7 +312,14 @@ const acceptTrip = socketCatchAsync(async (socket, io, payload) => {
 
        // If no document was modified another driver already accepted
       if (!updatedTrip){
-         emitError(socket, status.CONFLICT, "Trip no longer available");
+        socket.emit(
+        EnumSocketEvent.TRIP_ACCEPTED,
+        emitResult({
+          statusCode: status.NOT_FOUND,
+          success: false,
+          message: `Trip not found or no longer available`,
+        })
+      );
          return null;
       }
        

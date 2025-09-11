@@ -40,11 +40,6 @@ const verifyPayment = async (payload)=>{
 }
 
 
-const getFiuuCredentials = async ()=>{
-
-}
-
-
 function generateSignature(amount, orderid, merchantId, verifyKey) {
     const raw = `${amount}${merchantId}${orderid}${verifyKey}`;
 
