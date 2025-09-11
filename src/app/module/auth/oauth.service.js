@@ -32,6 +32,8 @@ const loginWithOAuth = async (
                     ignoreExpiration: false,
                 });
 
+                console.log(appleUser)
+
                 if (!appleUser || !appleUser.sub) {
                     throw new ApiError(400, 'Invalid Apple token payload');
                 }
