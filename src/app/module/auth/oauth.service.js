@@ -1,5 +1,6 @@
 const ApiError = require("../../../error/ApiError");
 const User = require("../user/User");
+const mongoose = require('mongoose')
 const httpStatus = require("http-status");
 const appleSigninAuth  = require('apple-signin-auth');
 const config = require("../../../config");
@@ -17,7 +18,9 @@ const loginWithOAuth = async (
      if (!['google', 'apple', 'facebook'].includes(provider)) {
         throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid provider');
     }
-    let email, id, name, picture;
+    let email, appleId, name, email_verified;
+
+    console.log(payload)
 
 
     try {
@@ -32,11 +35,11 @@ const loginWithOAuth = async (
                 if (!appleUser || !appleUser.sub) {
                     throw new ApiError(400, 'Invalid Apple token payload');
                 }
-                console.log(appleUser)
                 email = appleUser?.email || ' ';
                 appleId = appleUser.sub;
-                name = appleUser?.name || '';
-                picture = '';
+                name = appleUser?.name || 'Default';
+                profile_image = '';
+                email_verified = appleUser.email_verified
             } catch (err) {
                 throw new ApiError(
                     401,
@@ -51,6 +54,7 @@ const loginWithOAuth = async (
             Auth.isAuthExist(email),
             User.findOne({ email }),
           ]);
+          console.log(auth)
 
         // Find or create user
         
@@ -70,10 +74,13 @@ const loginWithOAuth = async (
                     phoneNumber,
                     appleId,
                     isActive: true,
+                    isVerified:email_verified
                     };
                 auth = new Auth(authData);
 
                 await auth.save({ session });
+
+                console.log(payload)
 
                 
                 const userData = {
@@ -82,12 +89,10 @@ const loginWithOAuth = async (
                     email,
                     role,
                     phoneNumber,
-                    ...(profile_image && { profile_image }),
-                    ...(address && { address }),
                     };
 
                 user = await User.create(
-                        userData,
+                        [userData],
                     { session }
                 );
 
@@ -117,8 +122,8 @@ const loginWithOAuth = async (
 
         const accessToken = jwtHelpers.createToken(
             jwtPayload,
-            config.jwt_access_secret ,
-            config.jwt_access_expires_in 
+            config.jwt.secret ,
+            config.jwt.expires_in 
         );
     
         return { accessToken, message:'Account created successfully'};
