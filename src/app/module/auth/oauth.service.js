@@ -20,8 +20,6 @@ const loginWithOAuth = async (
     }
     let email, appleId, name, email_verified;
 
-    console.log(payload)
-
 
     try {
         if (provider === 'apple') {
@@ -30,16 +28,14 @@ const loginWithOAuth = async (
                 const appleUser = await appleSigninAuth.verifyIdToken(appleToken, {
                     audience: config.apple_client_id,
                     ignoreExpiration: false,
-                });
-
-                console.log(appleUser)
+                }); 
 
                 if (!appleUser || !appleUser.sub) {
                     throw new ApiError(400, 'Invalid Apple token payload');
                 }
                 email = appleUser?.email || ' ';
                 appleId = appleUser.sub;
-                name = appleUser?.name || 'Default';
+                name = appleUser?.name || 'Apple User';
                 profile_image = '';
                 email_verified = appleUser.email_verified
             } catch (err) {
