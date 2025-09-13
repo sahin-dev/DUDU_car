@@ -76,10 +76,12 @@ const deleteMyAccount = async (payload) => {
     throw new ApiError(status.FORBIDDEN, "Password is incorrect");
   }
 
-  Promise.all([
+  await Promise.all([
     Auth.deleteOne({ email }),
     User.deleteOne({ authId: isUserExist._id }),
   ]);
+
+  return { message: "Your account has been deleted successfully." }
 };
 
 const getDriverStats = async (userId)=>{
