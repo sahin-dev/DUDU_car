@@ -275,6 +275,7 @@ const growth = async (query) => {
 // driver-user management ========================
 
 const getUser = async (query) => {
+  console.log(query)
   validateFields(query, ["userId"]);
   if (mongoose.Types.ObjectId.isValid(query.userId) === false)
     throw new ApiError(status.BAD_REQUEST, "Invalid userId");
