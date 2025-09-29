@@ -306,6 +306,11 @@ const postDriver = async (req) => {
     "licenseExpiry",
   ]);
 
+  if(new Date(payload.licenseExpiry) <= new Date(Date.now())){
+    console.log("Error")
+    throw new ApiError(status.BAD_REQUEST, "expiry date must be in future");
+  }
+
   const authData = {
     name: payload.name,
     email: payload.email,
