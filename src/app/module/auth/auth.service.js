@@ -181,19 +181,15 @@ const activateAccount = async (payload) => {
 };
 
 const loginAccount = async (payload) => {
-  const { email, password, deviceId,token } = payload;
-  console.log(token)
+  const { email, password, deviceId,token, source } = payload;
 
   const auth = await Auth.isAuthExist(email);
 
   if (!auth) throw new ApiError(status.NOT_FOUND, "User does not exist");
 
-  console.log("auth", auth);  
-
   if (auth.deviceId && (auth.deviceId !== deviceId)){
     throw new ApiError(status.BAD_REQUEST, "You are already logged in from another device");
   }
-
   if (!auth.isActive)
     throw new ApiError(
       status.BAD_REQUEST,
@@ -203,8 +199,7 @@ const loginAccount = async (payload) => {
     throw new ApiError(status.FORBIDDEN, "You are blocked. Contact support");
 
   if (
-    auth.password &&
-    !(await Auth.isPasswordMatched(password, auth.password))
+    auth.password && !(await Auth.isPasswordMatched(password, auth.password))
   ) {
     throw new ApiError(status.BAD_REQUEST, "Password is incorrect");
   }
@@ -217,7 +212,12 @@ const loginAccount = async (payload) => {
   let result;
   switch (auth.role) {
     case EnumUserRole.ADMIN:
-      result = await Admin.findOne({ authId: auth._id }).populate("authId");
+      if(source === 'dashboard'){
+        result = await Admin.findOne({ authId: auth._id }).populate("authId");
+      }else{
+        throw new ApiError(status.BAD_REQUEST, "Sorry, you are try to login incorrectly");
+      }
+      
       break;
     default:
       result = await User.findOne({ authId: auth._id }).populate("authId");
