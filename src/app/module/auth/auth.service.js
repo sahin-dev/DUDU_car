@@ -203,6 +203,9 @@ const loginAccount = async (payload) => {
   ) {
     throw new ApiError(status.BAD_REQUEST, "Password is incorrect");
   }
+  if(!((auth.role === EnumUserRole.ADMIN && source === 'dashboard') || ((auth.role === EnumUserRole.USER || auth.role === EnumUserRole.DRIVER) && source !== 'dashboard'))){
+    throw new ApiError(status.BAD_REQUEST, "Sorry, you are try to login incorrectly");
+  }
   // Update token whenever user login 
   await User.updateOne({authId:auth._id}, {token:token})
 
@@ -212,12 +215,8 @@ const loginAccount = async (payload) => {
   let result;
   switch (auth.role) {
     case EnumUserRole.ADMIN:
-      if(source === 'dashboard'){
-        result = await Admin.findOne({ authId: auth._id }).populate("authId");
-      }else{
-        throw new ApiError(status.BAD_REQUEST, "Sorry, you are try to login incorrectly");
-      }
-      
+     
+      result = await Admin.findOne({ authId: auth._id }).populate("authId")
       break;
     default:
       result = await User.findOne({ authId: auth._id }).populate("authId");
