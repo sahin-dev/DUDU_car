@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const { UserAccountStatus } = require("../../../util/enum");
+const { UserAccountStatus, VerificationStatusEnum } = require("../../../util/enum");
 
 const { Schema, model, Types } = mongoose;
 
@@ -47,6 +47,20 @@ const UserSchema = new Schema(
     isOnline: {
       type: Boolean,
       default: false,
+    },
+   
+    nrc_verification_status:{
+      type: String,
+      default:VerificationStatusEnum.UNVERIFIED
+    },
+    nrc_images:{
+      type:[String],
+      required:false
+  
+    },
+    identification_number:{
+      type:String,
+      required:false
     },
     id_or_passport_image: {
       type: String,
@@ -107,6 +121,7 @@ const UserSchema = new Schema(
     coins: {
       type: Number,
       min: 0,
+      default: 0
     },
    
     // outstanding fee from previous trips

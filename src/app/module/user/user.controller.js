@@ -37,7 +37,7 @@ const getDriverStates = catchAsync(async (req,res)=>{
 
  
 
-  const states = await UserController.getDriverStates(userId)
+  const states = await UserService.getDriverStats(userId)
 
   sendResponse(res, {
     statusCode:200,
@@ -49,11 +49,26 @@ const getDriverStates = catchAsync(async (req,res)=>{
 
 
 
+const submitNrcDocument = catchAsync(async (req, res) => {
+  const {userId} = req.user
+  const {identification_number} = req.body
+  
+  const result = await UserService.submitNRC(userId,identification_number, req.files)
+
+   sendResponse(res, {
+    statusCode:200,
+    success:true,
+    message:"nrc document submitted successfully",
+    data:result
+  })
+})
+
 const UserController = {
   deleteMyAccount,
   getProfile,
   updateProfile,
-  getDriverStates
+  getDriverStates,
+  submitNrcDocument
 };
 
 module.exports = { UserController };

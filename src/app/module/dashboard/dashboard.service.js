@@ -4,6 +4,7 @@ const {
   UserAccountStatus,
   EnumPaymentStatus,
   EnumPaymentFor,
+  VerificationStatusEnum,
 } = require("../../../util/enum");
 const Auth = require("../auth/Auth");
 const User = require("../user/User");
@@ -368,8 +369,9 @@ const getAllDriversOrUsers = async (query) => {
   if (!Object.values(EnumUserRole).includes(query.role))
     throw new ApiError(status.BAD_REQUEST, "Invalid role");
 
+  
   const driversQuery = new QueryBuilder(
-    User.find({ role: query.role })
+    User.find({role:query.role})
       .populate([
         {
           path: "authId",
@@ -389,6 +391,7 @@ const getAllDriversOrUsers = async (query) => {
     driversQuery.modelQuery,
     driversQuery.countTotal(),
   ]);
+
 
   return {
     meta,
@@ -593,6 +596,20 @@ const updateFare = async (payload) => {
   return fare;
 };
 
+const updateVerificationStatus = async (userId, status) => {
+  const user = await User.findById(userId)
+
+  if(!user){
+    throw new ApiError(status.NOT_FOUND, "user not found")
+  }
+
+  if(user.nrc_verification_status !== VerificationStatusEnum.SUBMITTED){
+    throw new ApiError(status.NOT_FOUND, "You did not submit any document yet")
+  }
+
+  return await User.findByIdAndUpdate(user._id,{nrc_verification_status:status}, {new:true})
+}
+
 const DashboardService = {
   getRevenue,
   totalOverview,
@@ -611,6 +628,8 @@ const DashboardService = {
   updateToggleAnnouncement,
 
   updateFare,
+
+  updateVerificationStatus
 };
 
 module.exports = DashboardService;

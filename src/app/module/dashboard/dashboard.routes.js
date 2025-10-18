@@ -73,6 +73,11 @@ router
     "/update-fare",
     auth(config.auth_level.admin),
     DashboardController.updateFare
-  );
+  )
+  .post("/verification-status", 
+    auth(config.auth_level.admin),
+    DashboardController.updateVerificationStatus
+  )
+
 
 module.exports = router;

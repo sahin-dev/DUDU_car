@@ -149,6 +149,19 @@ const updateFare = catchAsync(async (req, res) => {
   });
 });
 
+const updateVerificationStatus = catchAsync(async (req, res) => {
+  const {userId,status} = req.body
+
+  const result = await DashboardService.updateVerificationStatus(userId, status)
+
+  sendResponse(res, {
+    statusCode: 200, 
+    success:true,
+    message:"user verification status updated successfully",
+    data: result
+  })
+})
+
 const DashboardController = {
   totalOverview,
   getRevenue,
@@ -167,6 +180,8 @@ const DashboardController = {
   updateToggleAnnouncement,
 
   updateFare,
+
+  updateVerificationStatus
 };
 
 module.exports = DashboardController;

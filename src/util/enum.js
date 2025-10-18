@@ -36,6 +36,13 @@ const EnumPaymentFor = {
   COIN_PURCHASE: "coin_purchase",
 };
 
+const VerificationStatusEnum = {
+  UNVERIFIED:"unverified",
+  SUBMITTED:"submitted",
+  ACCEPTED:"accepted",
+  REJECTED:"rejected"
+}
+
 // socket enums
 
 const EnumSocketEvent = {
@@ -94,4 +101,5 @@ module.exports = {
   EnumTripExtraChargeType,
   UserAccountStatus,
   EnumTripType,
+  VerificationStatusEnum
 };

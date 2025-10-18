@@ -62,6 +62,7 @@ const uploadFile = () => {
       "car_grant_image",
       "car_insurance_image",
       "e_hailing_vehicle_permit_pdf",
+      "nrc_image"
     ];
 
     // Allow requests without files (when there's no fieldname)
@@ -93,6 +94,7 @@ const uploadFile = () => {
     { name: "car_grant_image", maxCount: 1 },
     { name: "car_insurance_image", maxCount: 1 },
     { name: "e_hailing_vehicle_permit_pdf", maxCount: 1 },
+    {name:"nrc_image", maxCount:2}
   ]);
 
   return upload;

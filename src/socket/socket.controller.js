@@ -14,6 +14,7 @@ const {
   TripStatus,
   EnumTripExtraChargeType,
   EnumTripType,
+  EnumPaymentType,
 } = require("../util/enum");
 const postNotification = require("../util/postNotification");
 const emitResult = require("./emitResult");
@@ -25,6 +26,7 @@ const validateFields = require("../util/validateFields");
 const isPeakHour = require("../util/isPeakHour");
 const ReviewService = require("../app/module/review/review.service");
 const NotificationService = require("../app/module/notification/notification.service");
+const DCoinService = require("../app/module/dcoin/dcoin.service");
 
 // trip socket =============================================================================================================================
 // track active timeouts for trip cancellation
@@ -617,6 +619,10 @@ const updateTripStatus = socketCatchAsync(async (socket, io, payload) => {
         }),
       };
 
+      if(newStatus === TripStatus.COMPLETED){
+        
+      }
+
       await Trip.findByIdAndUpdate(tripId, tripUpdateData, {
         new: true,
         runValidators: true,
@@ -926,6 +932,12 @@ const updateDriverAvailability = async (
   activeDrivers.set(trip.driver.toString(), socket);
   }
 };
+
+
+
+const payUsingCoin = async (trip) => {
+  const user = await User.findById(trip.user)
+}
 
 // Schedule a cron job to run every Sunday at midnight for removing OnlineSessions without a duration field
 cron.schedule("0 0 * * 0", removeStaleOnlineSessions);

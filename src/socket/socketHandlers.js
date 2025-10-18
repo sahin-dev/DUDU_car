@@ -27,7 +27,7 @@ const socketHandlers = socketCatchAsync(async (socket, io, activeDrivers) => {
   console.log("connected activeDrivers:", activeDrivers.size);
 
   socket.on(EnumSocketEvent.TRIP_REQUESTED, (payload) => {
-    console.log(userId)
+    
     SocketController.requestTrip(socket, io, {
       ...payload,
       userId,

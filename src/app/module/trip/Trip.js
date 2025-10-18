@@ -127,6 +127,11 @@ const tripSchema = new Schema(
         ).join(", ")}`,
       },
     },
+    paymentStatus:{
+      type:String,
+      enum:["paid", "unpaid"],
+      default:"unpaid"
+    },
     status: {
       type: String,
       enum: {

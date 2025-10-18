@@ -1,9 +1,13 @@
 const { errorLogger, logger } = require("./util/logger");
 const connectDB = require("./connection/connectDB");
 const config = require("./config");
-const mainServer = require("./connection/socket");
-const jobScheduler = require("./app/module/agenda/init");
 
+const jobScheduler = require("./app/module/agenda/init");
+const http = require("http");
+const app = require("./app");
+const {initSocketServer} = require("./connection/socket");
+
+let io = undefined
 async function main() {
   try {
     await connectDB();
@@ -14,11 +18,18 @@ async function main() {
     // mainServer.listen(Number(config.port), config.base_url, () => {
     //   logger.info(`App listening on http://${config.base_url}:${config.port}`);
     // });
+  const mainServer = http.createServer(app);
+
+  initSocketServer(mainServer)
 
     // port forwarded
     mainServer.listen(Number(config.port), () => {
       logger.info(`App listening on http://localhost:${config.port}`);
+
     });
+
+  
+
 
     process.on("unhandledRejection", (error) => {
       errorLogger.error("Unhandled Rejection:", error);
@@ -53,3 +64,4 @@ async function main() {
 }
 
 main();
+

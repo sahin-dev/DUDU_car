@@ -182,7 +182,7 @@ const activateAccount = async (payload) => {
 
 const loginAccount = async (payload) => {
   const { email, password, deviceId,token, source } = payload;
-
+  
   const auth = await Auth.isAuthExist(email);
 
   if (!auth) throw new ApiError(status.NOT_FOUND, "User does not exist");
@@ -213,13 +213,20 @@ const loginAccount = async (payload) => {
   await Auth.updateOne({ _id: auth._id }, { deviceId: deviceId }, { new: true });
 
   let result;
+  let nrc_verification_status = undefined
   switch (auth.role) {
     case EnumUserRole.ADMIN:
      
       result = await Admin.findOne({ authId: auth._id }).populate("authId")
       break;
-    default:
+    case EnumUserRole.USER:
+    
       result = await User.findOne({ authId: auth._id }).populate("authId");
+      nrc_verification_status = result.nrc_verification_status
+      break
+    case EnumUserRole.DRIVER:
+      result = await User.findOne({ authId: auth._id }).populate("authId");
+      
   }
 
 
@@ -237,9 +244,12 @@ const loginAccount = async (payload) => {
     config.jwt.expires_in
   );
 
-  return {
+  const returnedObj =  {
+    ...(nrc_verification_status?{nrc_verification_status}:{}),
     accessToken,
   };
+  console.log(returnedObj)
+  return returnedObj
 };
 
 const socialLogin = async (payload) => {
@@ -310,6 +320,7 @@ const socialLogin = async (payload) => {
   return {
     accessToken,
     message,
+    nrc_verification_status:user.nrc_verification_status
   };
 };
 

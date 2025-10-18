@@ -54,6 +54,7 @@ const AuthSchema = new Schema(
     isVerified: {
       type: Boolean,
     },
+    
     isBlocked: {
       type: Boolean,
       default: false,

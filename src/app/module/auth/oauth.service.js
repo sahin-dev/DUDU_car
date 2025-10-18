@@ -124,7 +124,7 @@ const loginWithOAuth = async (
             config.jwt.expires_in 
         );
     
-        return { accessToken, message:'Account created successfully'};
+        return { accessToken, message:'Account created successfully', nrc_verification_status: user.nrc_verification_status};
     } catch (error) {
         console.error('OAuth login error:', error);
 

@@ -104,7 +104,7 @@ const initPayment = catchAsync(async (req,res)=>{
   const payload = req.body
   const {userId} = req.user
 
-  const paymentInit = await PaymentService.initPayment(payload)
+  const paymentInit = await PaymentService.initPayment(userId,payload)
 
   sendResponse(res, {
     statusCode:200,

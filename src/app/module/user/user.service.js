@@ -5,7 +5,7 @@ const User = require("./User");
 const Auth = require("../auth/Auth");
 const unlinkFile = require("../../../util/unlinkFile");
 const deleteFalsyField = require("../../../util/deleteFalsyField");
-const { EnumUserRole } = require("../../../util/enum");
+const { EnumUserRole, VerificationStatusEnum } = require("../../../util/enum");
 const Trip = require("../trip/Trip");
 
 const updateProfile = async (req) => {
@@ -96,6 +96,27 @@ const getDriverStats = async (userId)=>{
   
 }
 
+const submitNRC = async (userId,id_number, files)=> {
+
+  const user  = await User.findById(userId)
+  if(!user){
+    throw new ApiError(status.NOT_FOUND, "user not found")
+  }
+
+  if(!files || files.nrc_image.length <= 0){
+    throw new ApiError("file is required to verify your identity")
+  }
+  if(user.nrc_images){
+    user.nrc_images.forEach(image => {
+       unlinkFile(image);
+    })
+  }
+  const files_path = files.nrc_image.map(file => file.path)
+
+  return await User.findByIdAndUpdate(user._id, {identification_number:id_number,nrc_verification_status:VerificationStatusEnum.SUBMITTED,nrc_images:files_path}, {new:true})
+
+}
+
 
 
 const UserService = {
@@ -103,6 +124,7 @@ const UserService = {
   deleteMyAccount,
   updateProfile,
   getDriverStats,
+  submitNRC
 };
 
 module.exports = { UserService };

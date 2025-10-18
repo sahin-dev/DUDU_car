@@ -42,7 +42,7 @@ module.exports = {
   // FIUU_NOTIFICATION_URL=https://yourdomain.com/api/payment/fiuu-notification # If applicable
   merchantId : 'SB_duducar',
   Verify_Key:'cc90186650dd4ffa3d05bb3528e2a3fa',
-  secretKey:'441cb60ed3b0ee418fd41e13dd2b25df',
+  secretKey:'6a99e3f4de4de83083aaf18456fb9c10',
   email:"duducar@domain.com",
   password:"Duducarmalaysia#2025",
   generateVcode: generateVcode.bind(this),

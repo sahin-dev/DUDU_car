@@ -14,24 +14,54 @@ const {
   TripStatus,
 } = require("../../../util/enum");
 const Trip = require("../trip/Trip");
+const DCoinService = require('../dcoin/dcoin.service');
+const User = require('../user/User');
+const emitPaymentSuccess = require('../../../socket/emitPaymentSuccess');
 
+
+const fiuuUrl = `https://sandbox-payment.fiuu.com/RMS/pay/${FiuuService.merchantId}/index.php`
 
 const fiuuNotification = async (payload)=>{
-  console.log(payload)
-
-  const isPaymentVerified = FiuuService.verifySKey(payload)
-
-  if(isPaymentVerified){
-    //changed payment status to database
-    console.log(isPaymentVerified)
-  }
+  console.log("notification",payload)
+  let payment = await Payment.findOne({orderId:payload.orderid})
+  let trip;
+  if(payment && payload.status === '00'){
+    await Payment.findByIdAndUpdate(payment._id, {status:EnumPaymentStatus.SUCCEEDED}, {new:true})
   
-  return
+    
+    if(payment.paymentFor === EnumPaymentFor.COIN_PURCHASE){
+      const userId = payment.user
+
+      const user = await User.findByIdAndUpdate(userId, {'$inc':{coins:payment.amountInCoins}}, {new:true})
+      console.log("Coin added successfully")
+      // emitPaymentSuccess(updatedTrip, payment);
+    }else if(payment.paymentFor === EnumPaymentFor.TRIP) {
+      try{
+        trip = await Trip.findByIdAndUpdate(payment.trip, {paymentStatus:"paid"}, {new: true});
+        try{
+           emitPaymentSuccess(trip, payment);
+        }catch(err){
+          console.log("error payment emitting..", err)
+        }
+       
+      }catch(err){
+        console.log("payment notification sending failed" ,  err)
+      }
+    }
+  }else {
+    console.log("payment not found")
+  }
+}
+
+function generateUniqueNumber() { 4229989999000012
+  const timestamp = Date.now().toString().slice(-6); // last 6 digits of timestamp
+  const random = Math.floor(1000 + Math.random() * 9000); // random 4-digit number
+  return Number(`${random}${timestamp}`); // combine both
 }
 
 
 const fiuuCallback = async (payload)=>{
-  console.log(payload)
+  console.log("callback",payload)
 }
 
 const verifyPayment = async (payload)=>{
@@ -47,30 +77,109 @@ function generateSignature(amount, orderid, merchantId, verifyKey) {
 }
 
 
-const initPayment = async (payload)=>{
+const initPayment = async (userId,payload)=>{
 
-  validateFields(payload, ["tripId", "email", "name", "phone"])
-  const {tripId, email, name, phone} = payload
+  validateFields(payload, ["email", "name", "phone"])
+  const {tripId, email, name, phone, dCoinId} = payload
 
-  const trip = await Trip.findOne({_id:tripId, status:TripStatus.COMPLETED})
-  if(!trip)
-  {
-    throw new ApiError(status.NOT_FOUND, "trip not found")
+  let trip ,dcoin 
+  if(tripId){
+    
+    trip = await Trip.findOne({_id:tripId, status:TripStatus.DESTINATION_REACHED})
+    if(!trip){
+        throw new ApiError(status.NOT_FOUND, "Trip not found")
+    }
+
+    if(trip.paymentType === EnumPaymentType.COIN){
+
+      const finalFare = trip.finalFare
+      const user = await User.findById(trip.user)
+
+      if(!user){
+        console.log("user not found")
+        throw new ApiError(status.NOT_FOUND, "user not found")
+      }
+      else if(user.coins < finalFare){
+        console.log("Your coin is limited")
+        throw new ApiError(status.BAD_REQUEST, "Your coin is less than rqquired coin!")
+      }else {
+
+        const updatedUser = await  User.findByIdAndUpdate(user._id, {$inc:{coins:-finalFare}}, {new:true})
+        // sendPaymentNotification(trip._id)
+        console.log(updatedUser)
+        let payment = await Payment.create({
+          trip: trip._id, 
+          user:userId, 
+          driver:trip.driver,
+          amountForCoinPurchase:0, 
+          orderId:101,
+          amountInCash:trip.finalFare || 100, 
+          amountInCoins:trip.finalFare || 100,
+          paymentFor: EnumPaymentFor.TRIP,
+          paymentType: trip.paymentType,
+          status:EnumPaymentStatus.SUCCEEDED
+        })
+
+        const updatedTrip = await Trip.findByIdAndUpdate(trip._id, {paymentStatus:"paid"}, {new:true})
+        emitPaymentSuccess(updatedTrip, payment);
+        return {message:"coin payment succeeded"}
+      }
+        
+    }
+      
   }
-  const fiuuUrl = `https://sandbox-payment.fiuu.com/RMS/pay/${FiuuService.merchantId}/index.php`
+  else{
+    dcoin = await DCoinService.getDCoin({userId}, {dCoinId})
+    if(!dcoin){
+      throw new ApiError(status.NOT_FOUND, "Dcoin not found")
+    }
+  }
+
+  let payment = null
+
+  const uniqueOrderId = generateUniqueNumber()
+
+  if(trip){
+    payment = await Payment.create({
+      trip: trip._id, 
+      user:userId, 
+      driver:trip.driver,
+      amountForCoinPurchase:0, 
+      orderId:uniqueOrderId,
+      amountInCash:trip.finalFare || 100, 
+      amountInCoins:trip.finalFare || 100,
+      paymentFor: EnumPaymentFor.TRIP,
+      paymentType: trip.paymentType
+    })
+  }else{
+    payment = await Payment.create({
+      user:userId, 
+      amountForCoinPurchase:dcoin.MYR, 
+      orderId:uniqueOrderId,
+      amountInCash:dcoin.MYR, 
+      amountInCoins:dcoin.coin,
+      paymentFor: EnumPaymentFor.COIN_PURCHASE,
+      paymentType: EnumPaymentType.CASH
+    })
+
+    console.lo
+  }
+  
+
 
   const paymentData = {
     merchant_id: FiuuService.merchantId,
-    orderid: tripId,
-    amount: trip.finalFare || 100,
+    orderid: payment.orderId,
+    amount: payment.amountInCash,
     country:"MY",
     currency:"MYR",
     bill_name: name,
     bill_email: email,
     bill_mobile:phone,
-    vcode:generateSignature(trip.finalFare || 100,tripId,FiuuService.merchantId,FiuuService.Verify_Key)
+    vcode:generateSignature(payment.amountInCash,payment.orderId,FiuuService.merchantId,FiuuService.Verify_Key)
           
   };
+
 
   try{
     const str = querystring.encode(paymentData)

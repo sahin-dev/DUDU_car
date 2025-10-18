@@ -15,6 +15,11 @@ router
     uploadFile(),
     UserController.updateProfile
   )
+  .post("/verify-identity" ,
+    auth(config.auth_level.user),
+    uploadFile(),
+    UserController.submitNrcDocument
+  )
   .delete(
     "/delete-account",
     auth(config.auth_level.user),
