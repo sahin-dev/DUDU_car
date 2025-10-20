@@ -3,11 +3,17 @@ const connectDB = require("./connection/connectDB");
 const config = require("./config");
 
 const jobScheduler = require("./app/module/agenda/init");
-const http = require("http");
+const https = require("https");
 const app = require("./app");
 const {initSocketServer} = require("./connection/socket");
+const fs = require("fs")
 
 let io = undefined
+
+const options = {
+  key: fs.readFileSync("./cert/key.pem"),
+  cert: fs.readFileSync("./cert/cert.pem"),
+};
 async function main() {
   try {
     await connectDB();
@@ -18,7 +24,7 @@ async function main() {
     // mainServer.listen(Number(config.port), config.base_url, () => {
     //   logger.info(`App listening on http://${config.base_url}:${config.port}`);
     // });
-  const mainServer = http.createServer(app);
+  const mainServer = https.createServer(options, app);
 
   initSocketServer(mainServer)
 
