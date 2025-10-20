@@ -4,6 +4,7 @@ const config = require("./config");
 
 const jobScheduler = require("./app/module/agenda/init");
 const https = require("https");
+const http = require("http")
 const app = require("./app");
 const {initSocketServer} = require("./connection/socket");
 const fs = require("fs")
@@ -24,15 +25,19 @@ async function main() {
     // mainServer.listen(Number(config.port), config.base_url, () => {
     //   logger.info(`App listening on http://${config.base_url}:${config.port}`);
     // });
-  const mainServer = https.createServer(options, app);
+  const mainHttpsServer = https.createServer(options, app);
+  const httpServer = http.createServer(app)
 
-  initSocketServer(mainServer)
+  initSocketServer(httpServer)
 
     // port forwarded
-    mainServer.listen(Number(config.port), () => {
+    httpServer.listen(Number(config.port), () => {
       logger.info(`App listening on http://localhost:${config.port}`);
 
     });
+    mainHttpsServer.listen(8001, () => {
+      logger.info(`https server listening on https//localhost:8001`)
+    })
 
   
 
