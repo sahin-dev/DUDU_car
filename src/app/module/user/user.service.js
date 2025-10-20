@@ -103,6 +103,10 @@ const submitNRC = async (userId,id_number, files)=> {
     throw new ApiError(status.NOT_FOUND, "user not found")
   }
 
+  if(!id_number){
+    throw new ApiError(status.BAD_REQUEST, "identification number is required")
+  }
+
   if(!files || files.nrc_image.length <= 0){
     throw new ApiError("file is required to verify your identity")
   }
