@@ -187,9 +187,9 @@ const loginAccount = async (payload) => {
 
   if (!auth) throw new ApiError(status.NOT_FOUND, "User does not exist");
 
-  if (auth.deviceId && (auth.deviceId !== deviceId)){
-    throw new ApiError(status.BAD_REQUEST, "You are already logged in from another device");
-  }
+  // if (auth.deviceId && (auth.deviceId !== deviceId)){
+  //   throw new ApiError(status.BAD_REQUEST, "You are already logged in from another device");
+  // }
   if (!auth.isActive)
     throw new ApiError(
       status.BAD_REQUEST,
@@ -210,7 +210,7 @@ const loginAccount = async (payload) => {
   await User.updateOne({authId:auth._id}, {token:token})
 
   //update deviceId if it is not same as previous
-  await Auth.updateOne({ _id: auth._id }, { deviceId: deviceId }, { new: true });
+  // await Auth.updateOne({ _id: auth._id }, { deviceId: deviceId }, { new: true });
 
   let result;
   let nrc_verification_status = undefined

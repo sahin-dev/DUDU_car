@@ -51,6 +51,21 @@ router
     auth(config.auth_level.user),
     TripController.getPeakHours
   )
+  .get(
+    "/get-available-drivers",
+    auth(config.auth_level.admin),
+    TripController.getAvailableDrivers
+  )
+  .get(
+    "/get-prebook-trips",
+    auth(config.auth_level.admin),
+    TripController.getPrebookTrips
+  )
+  .post(
+    "/assign-driver-for-prebook-trip",
+    auth(config.auth_level.admin),
+    TripController.assignDriverForPrebookTrip
+  )
   .patch(
     "/post-time-range",
     auth(config.auth_level.admin),

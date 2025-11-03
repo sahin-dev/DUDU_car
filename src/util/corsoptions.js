@@ -1,6 +1,6 @@
 const corsOptions = {
   origin: "*",
-  credentials: true,
+  credentials: false,
 };
 
 module.exports = corsOptions;

@@ -126,6 +126,37 @@ const updateTogglePeakHours = catchAsync(async (req, res) => {
   });
 });
 
+const getPrebookTrips = catchAsync(async (req, res) => {
+  const result = await TripService.getPrebookTrips();
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Prebook trips retrieved",
+    data: result,
+  });
+});
+
+const assignDriverForPrebookTrip = catchAsync(async (req, res) => {
+  const result = await TripService.assignDriverForPrebookTrip(req.body.tripId, req.body.driverId);
+  sendResponse(res, { 
+    statusCode: 200,
+    success: true,
+    message: "Driver assigned for prebook trip",
+    data: result,
+   });
+});
+
+const getAvailableDrivers = catchAsync(async (req, res) => {
+  const result = await TripService.getAvailableDrivers();
+  sendResponse(res, { 
+    statusCode: 200,
+    success: true,
+    message: "Available drivers retrieved",
+    data: result,
+   });
+});
+
+
 const TripController = {
   getTrip,
   getAllTrips,
@@ -139,6 +170,9 @@ const TripController = {
   postTimeRange,
   deleteTimeRange,
   updateTogglePeakHours,
+  assignDriverForPrebookTrip,
+  getPrebookTrips,
+  getAvailableDrivers,
 };
 
 module.exports = TripController;

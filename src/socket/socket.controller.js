@@ -166,65 +166,67 @@ const requestTrip = socketCatchAsync(async (socket, io, payload) => {
     })
   );
 
-  postNotification(
-    "Trip Requested",
-    "Your trip request is sent. Waiting for driver acceptance.",
-    trip.user._id
-  );
 
-  const availableDrivers = await User.find({
-    role: EnumUserRole.DRIVER,
-    isOnline: true,
-    isAvailable:true
-  }).lean();
-
-
-  const driverIds = availableDrivers.map((driver) => driver._id.toString());
-
-  driverIds.forEach((driverId) => {
-    const driverSocket = payload.activeDrivers.get(driverId);
-
-
-    if (driverSocket) {
-      driverSocket.emit(
-        EnumSocketEvent.TRIP_AVAILABLE,
-        emitResult({
-          statusCode: status.OK,
-          success: true,
-          message: "Trip available",
-          data: trip,
-        })
+  //If trip is not prebook, continue to normal flow
+  if(payload.tripType !== EnumTripType.PREBOOK){
+      postNotification(
+        "Trip Requested",
+        "Your trip request is sent. Waiting for driver acceptance.",
+        trip.user._id
       );
+    const availableDrivers = await User.find({
+      role: EnumUserRole.DRIVER,
+      isOnline: true,
+      isAvailable:true
+    }).lean();
+
+
+    const driverIds = availableDrivers.map((driver) => driver._id.toString());
+
+    driverIds.forEach((driverId) => {
+      const driverSocket = payload.activeDrivers.get(driverId);
+
+
+      if (driverSocket) {
+        driverSocket.emit(
+          EnumSocketEvent.TRIP_AVAILABLE,
+          emitResult({
+            statusCode: status.OK,
+            success: true,
+            message: "Trip available",
+            data: trip,
+          })
+        );
 
       
 
-  postNotification(
-    "Trip Available",
-    "A trip is available for you, grab it now!",
-   driverId
-  );
+    postNotification(
+      "Trip Available",
+      "A trip is available for you, grab it now!",
+    driverId
+    );
     }
-  });
+    });
 
-  // timeout handler with transaction support
-  const timeoutHandler = async () => {
-    const session = await mongoose.startSession();
-    try {
-      await session.withTransaction(async () => {
-        const currentTrip = await Trip.findById(trip._id)
-          .session(session)
-          .select("status")
-          .lean();
+    // timeout handler with transaction support
+    const timeoutHandler = async () => {
+      const session = await mongoose.startSession();
+        try {
+          await session.withTransaction(async () => {
+            const currentTrip = await Trip.findById(trip._id)
+              .session(session)
+              .select("status")
+              .lean();
 
-        if (!currentTrip || currentTrip.status !== TripStatus.REQUESTED) return;
+          if (!currentTrip || currentTrip.status !== TripStatus.REQUESTED) return;
 
-        await Trip.updateOne(
-          { _id: trip._id },
-          {
-            status: TripStatus.CANCELLED,
-            cancellationReason: ["No driver available"],
-          }
-        ).session(session);
+          await Trip.updateOne(
+            { _id: trip._id },
+            {
+              status: TripStatus.CANCELLED,
+              cancellationReason: ["No driver available"],
+            }
+          ).session(session);
 
         socket.emit(
           EnumSocketEvent.TRIP_NO_DRIVER_FOUND,
@@ -248,10 +250,17 @@ const requestTrip = socketCatchAsync(async (socket, io, payload) => {
       session.endSession();
       tripTimeouts.delete(trip._id.toString());
     }
-  };
+    };
 
-  const timeoutRef = setTimeout(timeoutHandler, 1000 * 60 * 0.5); // 30 seconds
-  tripTimeouts.set(trip._id.toString(), timeoutRef);
+    const timeoutRef = setTimeout(timeoutHandler, 1000 * 60 * 5); // 5 minutes
+    tripTimeouts.set(trip._id.toString(), timeoutRef);
+  }else{
+    postNotification(
+      "Prebook trip Requested",
+      "Your trip request is sent to admin. Waiting for confirmation.",
+      trip.user._id
+    );
+  }
 });
 
 const acceptTrip = socketCatchAsync(async (socket, io, payload) => {
@@ -812,9 +821,9 @@ const handleStatusNotifications = async (io, trip, newStatus) => {
     })
   );
   
-  if (newStatus === TripStatus.COMPLETED || newStatus === TripStatus.CANCELLED || newStatus === TripStatus.ACCEPTED || newStatus === TripStatus.SCHEDULED || newStatus === TripStatus.STARTED){
-      postNotification(`Trip update`, messageMap[newStatus].rider, trip.user);
-  }
+ 
+  postNotification(`Trip update`, messageMap[newStatus].rider, trip.user);
+  
 
   // Notify driver if any
   if (trip.driver) {

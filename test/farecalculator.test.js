@@ -21,7 +21,7 @@ describe("fareCalculator", () => {
   it("Test for 25min and 8km ride, should return RM 20.50", async () => {
     Fare.findOne.mockReturnValue(mockFindOne({
       baseFare: 3,
-      farePerKm: 0.34,
+      farePerKm: 0.40,
       farePerMin: 0.58,
       minFare: 6.5,
     }));

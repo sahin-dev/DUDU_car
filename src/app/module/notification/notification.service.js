@@ -36,9 +36,9 @@ const sendNotification = async (token,payload, data)=>{
       throw new ApiError(status.BAD_REQUEST, "token must not be empty")
     }
     if(data)
-      return  await firebaseClient.messaging().send({notification:{title,body:message}, data:{chatId:data.chatId.toString()}, token})
+      return  await firebaseClient.messaging().send({notification:{title,body:message,sound:"default"}, data:{chatId:data.chatId.toString()}, token})
 
-    return await firebaseClient.messaging().send({notification:{title,body:message}, token})
+    return await firebaseClient.messaging().send({notification:{title,body:message, sound:"default"}, token})
     
   }catch(err){
     console.log("firebase: message sending failed!")

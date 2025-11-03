@@ -53,7 +53,7 @@ const fiuuNotification = async (payload)=>{
   }
 }
 
-function generateUniqueNumber() { 4229989999000012
+function generateUniqueNumber() { 
   const timestamp = Date.now().toString().slice(-6); // last 6 digits of timestamp
   const random = Math.floor(1000 + Math.random() * 9000); // random 4-digit number
   return Number(`${random}${timestamp}`); // combine both

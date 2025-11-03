@@ -7,6 +7,7 @@ const {
   EnumUserRole,
   EnumPaymentType,
   TripStatus,
+  EnumTripType,
 } = require("../../../util/enum");
 const OnlineSession = require("../onlineSession/OnlineSession");
 const dateTimeValidator = require("../../../util/dateTimeValidator");
@@ -344,10 +345,11 @@ const postTimeRange = async (userData, payload) => {
 
 const deleteTimeRange = async (userData, payload) => {
   validateFields(payload, ["index"]);
-  const { index } = payload; // index of the timeRange to remove
+  let { index } = payload; // index of the timeRange to remove
 
-  if (typeof index !== "number")
-    throw new ApiError(status.BAD_REQUEST, "Index must be a number.");
+  if (isNaN(index = parseInt(index)))
+    throw new ApiError(status.BAD_REQUEST, "Index must be a number string.");
+
 
   const peak = await PeakHour.findOne();
   if (!peak) throw new ApiError(status.NOT_FOUND, "No peak hours found.");
@@ -399,6 +401,33 @@ const updateTripStatus = async (tripId, status) => {
   return trip;
 }
 
+const getPrebookTrips = async () => {
+  const trips = await Trip.find({tripType:EnumTripType.PREBOOK, status:TripStatus.REQUESTED}).populate(
+    {
+      path: "user",
+      select: "-_id -authId -createdAt -updatedAt -__v",
+    }
+  )
+
+  return trips
+}
+
+const assignDriverForPrebookTrip = async (tripId, driverId) => {
+  const trip = await Trip.findByIdAndUpdate(
+    tripId,
+    { driver: driverId, status:TripStatus.ACCEPTED },
+    { new: true }
+  );  
+  if (!trip) throw new ApiError(status.NOT_FOUND, "Trip not found");
+
+  return trip;
+}
+
+const getAvailableDrivers = async () => {
+  const drivers = await User.find({role:EnumUserRole.DRIVER, isOnline:true, isAvailable:true}).lean()
+  return drivers
+}
+
 
 const TripService = {
   getTrip,
@@ -413,7 +442,10 @@ const TripService = {
   postTimeRange,
   deleteTimeRange,
   updateTogglePeakHours,
-  updateTripStatus
+  updateTripStatus,
+  getPrebookTrips,
+  assignDriverForPrebookTrip,
+  getAvailableDrivers,
 };
 
 module.exports = TripService;
