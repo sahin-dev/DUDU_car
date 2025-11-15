@@ -36,14 +36,16 @@ const sendNotification = async (token,payload, data)=>{
     if(!token){
       throw new ApiError(status.BAD_REQUEST, "token must not be empty")
     }
-    if(data)
+    if(data){
       return  await firebaseClient.messaging().send({notification:{title,body:message}, android: {
       notification: {
         sound: "default"
       }
     }, data:{chatId:data.chatId.toString()}, token})
+    }
+      
 
-    return await firebaseClient.messaging().send({notification:{title,body:Message}, token})
+    return await firebaseClient.messaging().send({notification:{title,body:message}, token})
     
   }catch(err){
     console.log(err)
