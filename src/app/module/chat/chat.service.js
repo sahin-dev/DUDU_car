@@ -143,6 +143,8 @@ const getAllChats = async (userData, query) => {
     },
   ]);
 
+  chats.sort( (a, b) => b.updatedAt - a.updatedAt)
+
   return {
     // meta,
     chats,
