@@ -45,7 +45,12 @@ const sendNotification = async (token,payload, data)=>{
     }
       
 
-    return await firebaseClient.messaging().send({notification:{title,body:message}, token})
+    return await firebaseClient.messaging().send({notification:{title,body:message},android: {
+      notification: {
+        sound: "default"
+      }
+    }
+      , token})
     
   }catch(err){
     console.log(err)
