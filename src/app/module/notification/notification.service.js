@@ -6,7 +6,8 @@ const Notification = require("./Notification");
 const { EnumUserRole } = require("../../../util/enum");
 const AdminNotification = require("./AdminNotification");
 const firebaseClient = require("./firebase-admin")
-const User = require('../user/User')
+const User = require('../user/User');
+const Message = require("../chat/Message");
 
 
 const sendNotificationByUserId = async (userId, payload,data)=>{
@@ -36,11 +37,16 @@ const sendNotification = async (token,payload, data)=>{
       throw new ApiError(status.BAD_REQUEST, "token must not be empty")
     }
     if(data)
-      return  await firebaseClient.messaging().send({notification:{title,body:message,sound:"default"}, data:{chatId:data.chatId.toString()}, token})
+      return  await firebaseClient.messaging().send({notification:{title,body:message}, android: {
+      notification: {
+        sound: "default"
+      }
+    }, data:{chatId:data.chatId.toString()}, token})
 
-    return await firebaseClient.messaging().send({notification:{title,body:message, sound:"default"}, token})
+    return await firebaseClient.messaging().send({notification:{title,body:Message}, token})
     
   }catch(err){
+    console.log(err)
     console.log("firebase: message sending failed!")
   }
   

@@ -38,6 +38,7 @@ const testNotification  = catchAsync(async (req,res)=>{
 })
 
 const getNotification = catchAsync(async (req, res) => {
+  
   const result = await NotificationService.getNotification(req.user, req.query);
   sendResponse(res, {
     statusCode: 200,
