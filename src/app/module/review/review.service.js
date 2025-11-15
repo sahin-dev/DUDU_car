@@ -11,7 +11,7 @@ const Trip = require("../trip/Trip");
 const Car = require("../car/Car");
 
 const postReview = async (userData, payload) => {
-  validateFields(payload, ["carId","rating"]);
+  // validateFields(payload, ["carId","rating"]);
 
   const { userId } = userData;
   const { carId } = payload || {};

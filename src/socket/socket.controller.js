@@ -824,7 +824,7 @@ const handleStatusNotifications = async (io, trip, newStatus) => {
  
   postNotification(`Trip update`, messageMap[newStatus].rider, trip.user);
   
-
+  postNotification(`Trip update`, messageMap[newStatus].driver, trip.driver);
   // Notify driver if any
   if (trip.driver) {
     io.to(trip.driver._id.toString()).emit(
@@ -837,7 +837,7 @@ const handleStatusNotifications = async (io, trip, newStatus) => {
       })
     );
 
-    postNotification(`Trip update`, messageMap[newStatus].driver, trip.driver);
+    
   }
 };
 
