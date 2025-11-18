@@ -424,7 +424,8 @@ const assignDriverForPrebookTrip = async (tripId, driverId) => {
 }
 
 const getAvailableDrivers = async () => {
-  const drivers = await User.find({role:EnumUserRole.DRIVER, isOnline:true, isAvailable:true}).lean()
+  const drivers = await User.find({role:EnumUserRole.DRIVER}).lean()
+  
   return drivers
 }
 
