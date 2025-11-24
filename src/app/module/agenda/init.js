@@ -36,9 +36,9 @@ class JobScheduler {
         
     } 
 
-    start(){
+    async start(){
         if(this.agenda){
-            this.agenda.start();
+            await this.agenda.start();
             console.log("Agenda started");
         }
         else {
@@ -56,11 +56,15 @@ class JobScheduler {
         }
     }
 
-    registerJobs(){
+   registerJobs(){
+
         let jobs = require("./jobs");
+        this.agenda.cancel({ name: { $in: Object.keys(jobs) } });
 
         Object.keys(jobs).forEach(jobKey => {
 
+             
+  
             let  jobDetails = jobs[jobKey];
             this.agenda.define(jobKey, jobDetails.job);
 
@@ -68,51 +72,14 @@ class JobScheduler {
 
             if(jobDetails.interval) {
 
-                this.every(jobKey,jobDetails.interval, jobDetails.data || null);
-
-            }else if (jobDetails.when) {
-
-                this.schedule(jobKey, jobDetails.when, jobDetails.data || null);
-
-            }else {
-
-                this.run(jobKey, jobDetails.data || null);
+                this.agenda.every(jobDetails.interval,jobKey);
             }
 
             console.log(`Agenda job registered: ${jobKey}`);
         })
     }
 
-    schedule(jobName, when, data = {}, options = {}){
-
-        if(this.agenda){
-            this.agenda.schedule(when, jobName, data, options);
-            console.log(`Agenda job scheduled: ${jobName} at ${when}`);
-        }
-        else {
-            throw new Error("Agenda not initialized");
-        }
-    }
-
-    every(jobName, interval, data = {}, options = {}){
-        if(this.agenda){
-            this.agenda.every(interval, jobName, data, options);
-            console.log(`Agenda job set to run every ${interval}: ${jobName}`);
-        }   
-        else {
-            throw new Error("Agenda not initialized");
-        }
-    }
     
-    run(jobName, data, options = {}){
-        if(this.agenda){
-            this.agenda.now(jobName, data, options);
-            console.log(`Agenda job added: ${jobName}`);
-        }
-        else {
-            throw new Error("Agenda not initialized");
-        }   
-    }
 
  }
 

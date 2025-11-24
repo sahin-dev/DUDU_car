@@ -19,7 +19,7 @@ async function main() {
   try {
     await connectDB();
     logger.info(`DB Connected Successfully at ${new Date().toLocaleString()}`);
-    // jobScheduler.start();
+    await jobScheduler.start();
 
     // general
     // mainServer.listen(Number(config.port), config.base_url, () => {
