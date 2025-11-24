@@ -579,6 +579,53 @@ const updateToggleAnnouncement = async (payload) => {
 
 // fare management ========================
 
+
+const createFare = async (userData, payload) => {
+  // Validate input fields
+  const allowed = ["baseFare", "farePerKm", "farePerMin", "minFare"];
+  const update = {};
+
+  allowed.forEach((key) => {
+    if (payload[key] !== undefined) {
+      const val = Number(payload[key]);
+      if (Number.isNaN(val)) {
+        throw new ApiError(status.BAD_REQUEST, `${key} must be a number`);
+      }
+      update[key] = val;
+    }
+  });
+
+  if (Object.keys(update).length === 0) {
+    throw new ApiError(status.BAD_REQUEST, "No fare fields provided to create");
+  }
+
+  // If Fare collection already has a document, return conflict error
+  const existing = await Fare.findOne().lean();
+  if (existing) {
+    throw new ApiError(status.CONFLICT, "Fare settings already exist. Use update instead.");
+  }
+
+  const fareDoc = await Fare.create(update);
+  return fareDoc.toObject ? fareDoc.toObject() : fareDoc;
+}
+
+
+const getFareSettings = async (userData, query) => {
+  // Return the stored Fare document. If none exists, return sensible defaults.
+  const fare = await Fare.findOne().lean();
+
+  if (!fare) {
+    return {
+      baseFare: 0,
+      farePerKm: 0,
+      farePerMin: 0,
+      minFare: 0,
+    };
+  }
+
+  return fare;
+}
+
 const updateFare = async (payload) => {
   const updateFields = {
     ...(payload.baseFare && { baseFare: payload.baseFare }),
@@ -595,6 +642,8 @@ const updateFare = async (payload) => {
 
   return fare;
 };
+
+
 
 const updateVerificationStatus = async (userId, status) => {
   const user = await User.findById(userId)
@@ -627,6 +676,8 @@ const DashboardService = {
   updateAnnouncement,
   updateToggleAnnouncement,
 
+  createFare,
+  getFareSettings,
   updateFare,
 
   updateVerificationStatus

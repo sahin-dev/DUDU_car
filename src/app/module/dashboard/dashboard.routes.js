@@ -69,6 +69,12 @@ router
     DashboardController.updateToggleAnnouncement
   )
   // announcement management ==================
+  .get("/get-fare", auth(config.auth_level.admin), DashboardController.getFareSettings)
+  .post(
+    "/create-fare",
+    auth(config.auth_level.admin),
+    DashboardController.createFare
+  )
   .patch(
     "/update-fare",
     auth(config.auth_level.admin),

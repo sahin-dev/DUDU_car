@@ -18,6 +18,7 @@ const { default: mongoose } = require("mongoose");
 const fareCalculator = require("../../../util/fareCalculator");
 const ReviewService = require("../review/review.service");
 const User = require("../user/User");
+const Fare = require("./Fare");
 
 const getTrip = async (userData, query) => {
   validateFields(query, ["tripId"]);
@@ -320,6 +321,7 @@ const getPeakHours = async (userData, payload) => {
 };
 
 const postTimeRange = async (userData, payload) => {
+
   validateFields(payload, ["timeRanges", "isActive"]);
   validateFields(payload.timeRanges, ["start", "end"]);
   dateTimeValidator([], [payload.timeRanges.start, payload.timeRanges.end]);
@@ -423,10 +425,130 @@ const assignDriverForPrebookTrip = async (tripId, driverId) => {
   return trip;
 }
 
-const getAvailableDrivers = async () => {
-  const drivers = await User.find({role:EnumUserRole.DRIVER}).lean()
+const getAvailableDrivers = async (tripId) => {
+  // Get the specific trip to find its pickup date
+  const trip = await Trip.findById(tripId).lean();
   
-  return drivers
+  if (!trip) {
+    throw new ApiError(status.NOT_FOUND, "Trip not found");
+  }
+
+  // Calculate time window: 1 hour before and after the trip pickup date
+  const tripPickupTime = trip.pickUpDate || new Date();
+  const oneHourBefore = new Date(tripPickupTime.getTime() - 60 * 60 * 1000);
+  const oneHourAfter = new Date(tripPickupTime.getTime() + 60 * 60 * 1000);
+
+  // Find all drivers who don't have any trip scheduled within 1 hour before/after the specific trip
+  const busyDrivers = await Trip.find({
+    driver: { $exists: true, $ne: null },
+    status: { $in: [TripStatus.ACCEPTED, TripStatus.ON_THE_WAY, TripStatus.ARRIVED, TripStatus.PICKED_UP, TripStatus.STARTED] },
+    $or: [
+      {
+        pickUpDate: {
+          $gte: oneHourBefore,
+          $lte: oneHourAfter,
+        },
+      },
+      {
+        tripStartedAt: {
+          $gte: oneHourBefore,
+          $lte: oneHourAfter,
+        },
+      }
+    ],
+  })
+    .select("driver")
+    .lean();
+
+  // Get unique busy driver IDs
+  const busyDriverIds = busyDrivers.map((trip) => trip.driver);
+
+  // Get all available drivers (excluding busy ones)
+  const availableDrivers = await User.find({
+    role: EnumUserRole.DRIVER,
+    _id: { $nin: busyDriverIds },
+  }).lean();
+
+  return availableDrivers;
+}
+
+
+const updateFare = async (userData, payload) => {
+  // Only admin should be calling this (controller route enforces auth).
+  // Acceptable fields to update on Fare
+  const allowed = ["baseFare", "farePerKm", "farePerMin", "minFare"];
+
+  // Build update object with only allowed fields
+  const update = {};
+  allowed.forEach((key) => {
+    if (payload[key] !== undefined) {
+      const val = Number(payload[key]);
+      if (Number.isNaN(val)) {
+        throw new ApiError(status.BAD_REQUEST, `${key} must be a number`);
+      }
+      update[key] = val;
+    }
+  });
+
+  if (Object.keys(update).length === 0) {
+    throw new ApiError(status.BAD_REQUEST, "No fare fields provided to update");
+  }
+
+  // Update the single Fare document (create if not exists)
+  const fare = await Fare.findOneAndUpdate(
+    {},
+    { $set: update },
+    { new: true, upsert: true, runValidators: true }
+  ).lean();
+
+  return fare;
+}
+
+
+const createFare = async (userData, payload) => {
+  // Validate input fields
+  const allowed = ["baseFare", "farePerKm", "farePerMin", "minFare"];
+  const update = {};
+
+  allowed.forEach((key) => {
+    if (payload[key] !== undefined) {
+      const val = Number(payload[key]);
+      if (Number.isNaN(val)) {
+        throw new ApiError(status.BAD_REQUEST, `${key} must be a number`);
+      }
+      update[key] = val;
+    }
+  });
+
+  if (Object.keys(update).length === 0) {
+    throw new ApiError(status.BAD_REQUEST, "No fare fields provided to create");
+  }
+
+  // If Fare collection already has a document, return conflict error
+  const existing = await Fare.findOne().lean();
+  if (existing) {
+    throw new ApiError(status.CONFLICT, "Fare settings already exist. Use update instead.");
+  }
+
+  const fareDoc = await Fare.create(update);
+  return fareDoc.toObject ? fareDoc.toObject() : fareDoc;
+}
+
+
+const getFareSettings = async (userData, query) => {
+  // Return the stored Fare document. If none exists, return sensible defaults.
+  const fare = await Fare.findOne().lean();
+
+  if (!fare) {
+    return {
+      baseFare: 0,
+      farePerKm: 0,
+      farePerMin: 0,
+      minFare: 0,
+    };
+  }
+
+  return fare;
 }
 
 
@@ -443,6 +565,9 @@ const TripService = {
   postTimeRange,
   deleteTimeRange,
   updateTogglePeakHours,
+  updateFare,
+  getFareSettings,
+  createFare,
   updateTripStatus,
   getPrebookTrips,
   assignDriverForPrebookTrip,

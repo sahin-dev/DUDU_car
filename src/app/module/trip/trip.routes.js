@@ -37,6 +37,12 @@ router
 
   // fare calculator ========================
   .post("/get-fare", auth(config.auth_level.user), TripController.getFare)
+  .get("/get-fare", auth(config.auth_level.user), TripController.getFareSettings)
+  .post(
+    "/create-fare",
+    auth(config.auth_level.admin),
+    TripController.createFare
+  )
 
   // driver specific ========================
   .get(
@@ -50,6 +56,11 @@ router
     "/get-peak-hours",
     auth(config.auth_level.user),
     TripController.getPeakHours
+  )
+  .patch(
+    "/update-fare",
+    auth(config.auth_level.admin),
+    TripController.updateFare
   )
   .get(
     "/get-available-drivers",

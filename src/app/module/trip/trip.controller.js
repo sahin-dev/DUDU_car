@@ -85,6 +85,16 @@ const getFare = catchAsync(async (req, res) => {
   });
 });
 
+const getFareSettings = catchAsync(async (req, res) => {
+  const result = await TripService.getFareSettings(req.user, req.query);
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Fare settings retrieved",
+    data: result,
+  });
+});
+
 // Peak hour =========================
 const getPeakHours = catchAsync(async (req, res) => {
   const result = await TripService.getPeakHours();
@@ -126,6 +136,26 @@ const updateTogglePeakHours = catchAsync(async (req, res) => {
   });
 });
 
+const updateFare = catchAsync(async (req, res) => {
+  const result = await TripService.updateFare(req.user, req.body);
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Fare updated",
+    data: result,
+  });
+});
+
+const createFare = catchAsync(async (req, res) => {
+  const result = await TripService.createFare(req.user, req.body);
+  sendResponse(res, {
+    statusCode: 201,
+    success: true,
+    message: "Fare created",
+    data: result,
+  });
+});
+
 const getPrebookTrips = catchAsync(async (req, res) => {
   const result = await TripService.getPrebookTrips();
   sendResponse(res, {
@@ -147,7 +177,7 @@ const assignDriverForPrebookTrip = catchAsync(async (req, res) => {
 });
 
 const getAvailableDrivers = catchAsync(async (req, res) => {
-  const result = await TripService.getAvailableDrivers();
+  const result = await TripService.getAvailableDrivers(req.body.tripId);
   sendResponse(res, { 
     statusCode: 200,
     success: true,
@@ -170,6 +200,9 @@ const TripController = {
   postTimeRange,
   deleteTimeRange,
   updateTogglePeakHours,
+  getFareSettings,
+  updateFare,
+  createFare,
   assignDriverForPrebookTrip,
   getPrebookTrips,
   getAvailableDrivers,

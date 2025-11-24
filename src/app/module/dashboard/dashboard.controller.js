@@ -162,6 +162,28 @@ const updateVerificationStatus = catchAsync(async (req, res) => {
   })
 })
 
+
+const createFare = catchAsync(async (req, res) => {
+  const result = await DashboardService.createFare(req.user, req.body);
+  sendResponse(res, {
+    statusCode: 201,
+    success: true,
+    message: "Fare created",
+    data: result,
+  });
+});
+
+const getFareSettings = catchAsync(async (req, res) => {
+  const result = await DashboardService.getFareSettings(req.user, req.query);
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Fare settings retrieved",
+    data: result,
+  });
+});
+
+
 const DashboardController = {
   totalOverview,
   getRevenue,
@@ -179,6 +201,8 @@ const DashboardController = {
   updateAnnouncement,
   updateToggleAnnouncement,
 
+  createFare,
+  getFareSettings,
   updateFare,
 
   updateVerificationStatus
