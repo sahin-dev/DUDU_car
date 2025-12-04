@@ -44,7 +44,6 @@ const sendNotification = async (token,payload, data)=>{
     }, data:{chatId:data.chatId.toString()}, token})
     }
       
-
     return await firebaseClient.messaging().send({notification:{title,body:message},android: {
       notification: {
         sound: "default"
