@@ -16,6 +16,7 @@ const ChatRoutes = require("../module/chat/chat.routes");
 const PaymentRoutes = require("../module/payment/payment.routes");
 const CouponRoutes = require("../module/coupon/coupon.routes");
 const { contactRoutes } = require("../module/Contact/contact.route");
+const referralRoutes = require("../module/referral/referral.route")
 
 const moduleRoutes = [
   {
@@ -81,6 +82,10 @@ const moduleRoutes = [
   {
     path:"/contact",
     route:contactRoutes
+  },
+  {
+    path:"/referrals",
+    route:referralRoutes
   }
 ];
 

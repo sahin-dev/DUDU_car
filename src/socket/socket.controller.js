@@ -27,6 +27,7 @@ const isPeakHour = require("../util/isPeakHour");
 const ReviewService = require("../app/module/review/review.service");
 const NotificationService = require("../app/module/notification/notification.service");
 const DCoinService = require("../app/module/dcoin/dcoin.service");
+const referralService = require("../app/module/referral/referral.service");
 
 // trip socket =============================================================================================================================
 // track active timeouts for trip cancellation
@@ -628,10 +629,6 @@ const updateTripStatus = socketCatchAsync(async (socket, io, payload) => {
         }),
       };
 
-      if(newStatus === TripStatus.COMPLETED){
-        
-      }
-
       await Trip.findByIdAndUpdate(tripId, tripUpdateData, {
         new: true,
         runValidators: true,
@@ -669,6 +666,16 @@ const updateTripStatus = socketCatchAsync(async (socket, io, payload) => {
             session,
           }
         );
+        //if trip completed check and update referral status
+
+        const referralStatus = await referralService.getReferredUserStatus(trip.user._id)
+
+        if(referralStatus){
+          if(!referralStatus.firstTripCompleted){
+            await referralService.updateReferralTripStatus(referralStatus._id)
+          }
+        }
+        
       }
 
       handleStatusNotifications(io, updatedTrip, newStatus);

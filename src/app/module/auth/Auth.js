@@ -75,6 +75,15 @@ const AuthSchema = new Schema(
     activationCodeExpire: {
       type: Date,
     },
+    //initial referall popup related fields
+    initialLoggedIn:{
+      type:Boolean,
+      default:false
+    },
+    initialLoggedInAt:{
+      type:Date,
+      required:false
+    }
   },
   {
     timestamps: true,
@@ -93,6 +102,8 @@ AuthSchema.statics.isAuthExist = async function (email) {
       isBlocked: 1,
       isVerified: 1,
       deviceId: 1,
+      initialLoggedIn:1,
+      initialLoggedInAt:1
     }
   );
 };

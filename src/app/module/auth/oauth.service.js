@@ -123,8 +123,11 @@ const loginWithOAuth = async (
             config.jwt.secret ,
             config.jwt.expires_in 
         );
+        let first_time_log_in = !auth.initialLoggedIn
+        if(first_time_log_in)
+            await Auth.findOneAndUpdate({_id:auth._id}, {initialLoggedIn:true, initialLoggedInAt:new Date(Date.now())})
     
-        return { accessToken, message:'Account created successfully', nrc_verification_status: user.nrc_verification_status};
+        return { accessToken, message:'Account created successfully', nrc_verification_status: user.nrc_verification_status, first_time_log_in};
     } catch (error) {
         console.error('OAuth login error:', error);
 

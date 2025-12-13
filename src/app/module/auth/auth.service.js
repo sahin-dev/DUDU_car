@@ -190,6 +190,9 @@ const loginAccount = async (payload) => {
   // if (auth.deviceId && (auth.deviceId !== deviceId)){
   //   throw new ApiError(status.BAD_REQUEST, "You are already logged in from another device");
   // }
+
+  
+  
   if (!auth.isActive)
     throw new ApiError(
       status.BAD_REQUEST,
@@ -206,6 +209,8 @@ const loginAccount = async (payload) => {
   if(!((auth.role === EnumUserRole.ADMIN && source === 'dashboard') || ((auth.role === EnumUserRole.USER || auth.role === EnumUserRole.DRIVER) && source !== 'dashboard'))){
     throw new ApiError(status.BAD_REQUEST, "Sorry, you are try to login incorrectly");
   }
+
+  
   // Update token whenever user login 
   await User.updateOne({authId:auth._id}, {token:token})
 
@@ -229,8 +234,6 @@ const loginAccount = async (payload) => {
       
   }
 
-
-
   const tokenPayload = {
     authId: auth._id,
     userId: result._id,
@@ -247,8 +250,12 @@ const loginAccount = async (payload) => {
   const returnedObj =  {
     ...(nrc_verification_status?{nrc_verification_status}:{}),
     accessToken,
+    first_time_log_in:!auth.initialLoggedIn
   };
-  console.log(returnedObj)
+
+  if(!auth.initialLoggedIn)
+    await Auth.findOneAndUpdate({_id:auth._id}, {initialLoggedIn:true, initialLoggedInAt:new Date(Date.now())})
+
   return returnedObj
 };
 
@@ -316,11 +323,15 @@ const socialLogin = async (payload) => {
     config.jwt.secret,
     config.jwt.expires_in
   );
+  let first_time_log_in = !auth.initialLoggedIn
+  if(first_time_log_in)
+    await Auth.findOneAndUpdate({_id:auth._id}, {initialLoggedIn:true, initialLoggedInAt:new Date(Date.now())})
 
   return {
     accessToken,
     message,
-    nrc_verification_status:user.nrc_verification_status
+    nrc_verification_status:user.nrc_verification_status,
+    first_time_log_in
   };
 };
 
