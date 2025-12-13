@@ -1,25 +1,9 @@
 const { status } = require("http-status");
-const referralCodes = require("referral-codes")
+
 const User = require("../user/User")
 const ApiError = require("../../../error/ApiError");
 const Referral = require("./Referral");
 const NotificationService = require("../notification/notification.service");
-
-function generateUniqueCode (){
-     const code  =  referralCodes.generate({
-        length:4,
-        count:1
-    })
-
-  return code[0].toUpperCase()
-}
-
-
-function generateReferralCode() {
-
-  return generateUniqueCode()
-}
-
 
 
 const applyReferralCode = async (userId, code)=> {
@@ -122,7 +106,6 @@ const updateReferralTripStatus = async (referralId) => {
 
 
 const referralService = {
-    generateReferralCode,
     applyReferralCode,
     getReferredUserStatus,
     updateReferralTripStatus
