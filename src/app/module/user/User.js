@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const { UserAccountStatus, VerificationStatusEnum } = require("../../../util/enum");
-const generateUniqueCode = require("../../../util/referralCOdes");
+const generateUniqueCode = require("../../../util/referralCodes");
 
 const { Schema, model, Types } = mongoose;
 
