@@ -160,18 +160,18 @@ const UserSchema = new Schema(
 UserSchema.pre("save", async function(next) {
 
   if(this.isNew){
-    let code =  generateUniqueCode()
+    let code =  await generateUniqueCode()
     let user = await User.findOne({referralCode:code})
 
     while(user){
-      code = generateUniqueCode()
+      code = await generateUniqueCode()
       user = await User.findOne({referralCOde:code})
     }
     this.referralCode = code
     console.log("new user created with referral code: ",code )
   }
   if(!this.referralCode){
-    const code = generateUniqueCode()
+    const code = await generateUniqueCode()
     this.referralCode = code
     console.log("referral code set for existing user: ",code )
   }

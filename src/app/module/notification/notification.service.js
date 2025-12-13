@@ -37,10 +37,11 @@ const sendNotification = async (token,payload, data)=>{
       throw new ApiError(status.BAD_REQUEST, "token must not be empty")
     }
     if(data){
-      return  await firebaseClient.messaging().send({notification:{title,body:message}, android: {
-      notification: {
-        sound: "DUDU-Car-App-Notification-Sound.caf"
-      },
+      return  await firebaseClient.messaging().send({notification:{title,body:message}, 
+      android: {
+        notification: {
+          sound: "dudu_car_notification"
+        },
      apns: {
         payload: {
           aps: {
@@ -51,10 +52,11 @@ const sendNotification = async (token,payload, data)=>{
     }, data:{chatId:data.chatId.toString()}, token})
     }
       
-    return await firebaseClient.messaging().send({notification:{title,body:message},android: {
-      notification: {
-        sound: "DUDU-Car-App-Notification-Sound.caf"
-      }
+    return await firebaseClient.messaging().send({notification:{title,body:message},
+      android: {
+        notification: {
+          sound: "dudu_car_notification"
+        }
     },
      apns: {
         payload: {

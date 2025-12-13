@@ -1,10 +1,13 @@
-const referralCodes = require("referral-codes")
+let  referralCodes
 
-function generateUniqueCode (){
-     const code  =  referralCodes.generate({
-        length:4,
-        count:1
-    })
+async function generateUniqueCode (){
+  if(!referralCodes){
+    referralCodes = (await import("referral-codes")).default
+  }
+  const code  =  referralCodes.generate({
+    length:4,
+    count:1
+  })
 
   return code[0].toUpperCase()
 }
