@@ -42,22 +42,25 @@ const sendNotification = async (token,payload, data)=>{
         notification: {
           sound: "dudu_car_notification"
         },
-     apns: {
+      }, 
+      apns: {
         payload: {
           aps: {
             sound: "DUDU-Car-App-Notification-Sound.caf",
           },
         },
-      }
-    }, data:{chatId:data.chatId.toString()}, token})
+      },
+      
+      data:{chatId:data.chatId.toString()}, token})
     }
       
-    return await firebaseClient.messaging().send({notification:{title,body:message},
+    return await firebaseClient.messaging().send(
+      {notification:{title,body:message},
       android: {
         notification: {
           sound: "dudu_car_notification"
         }
-    },
+      },
      apns: {
         payload: {
           aps: {
