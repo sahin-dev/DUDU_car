@@ -1,4 +1,4 @@
-let  referralCodes
+const  referralCodes = require("referral-codes")
 
 async function generateUniqueCode (){
   if(!referralCodes){
