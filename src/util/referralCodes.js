@@ -1,9 +1,8 @@
-const  referralCodes = require("referral-codes")
+// const  referralCodes = require("referral-codes")
 
 async function generateUniqueCode (){
-  if(!referralCodes){
-    referralCodes = (await import("referral-codes")).default
-  }
+  const referralCodes = await import("referral-codes")
+  
   const code  =  referralCodes.generate({
     length:4,
     count:1
