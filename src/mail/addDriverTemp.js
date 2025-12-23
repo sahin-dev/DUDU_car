@@ -112,7 +112,7 @@ const addDriverTemp = (data) =>
           </table>
 
           <p>As a driver at DuDu, you play a vital role in ensuring smooth and safe rides for our customers. Please log in to your account to get started with your first trip.</p>
-          <p>If you have any questions or need any assistance, feel free to reach out to us at <a href="mailto:thakursaad613@gmail.com">thakursaad613@gmail.com</a>.</p>
+          <p>If you have any questions or need any assistance, feel free to reach out to us at <a href="mailto:duducar.co@gmail.com">duducar.co@gmail.com</a>.</p>
           <p>We look forward to working with you and wish you a great journey with us!</p>
           <p>Best regards,<br>The DuDu Team</p>
         </div>

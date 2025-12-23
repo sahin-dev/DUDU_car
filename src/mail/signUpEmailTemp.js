@@ -74,7 +74,7 @@ const signUpEmailTemp = (data) => `
         <p>Thank you for registering with Dudu. To activate your account, please use the following activation code:</p>
         <div class="code">${data.activationCode}</div>
         <p>Please enter this code on the activation page within the next <strong>${data.activationCodeExpire} minutes</strong>.</p>
-        <p>If you have any questions, please contact us at <a href="mailto:thakursaad613@gmail.com">thakursaad613@gmail.com</a>.</p>
+        <p>If you have any questions, please contact us at <a href="mailto:duducar.co@gmail.com">duducar.co@gmail.com</a>.</p>
         <p>Thank you,<br>The Dudu Team</p>
       </div>
       <div class="footer">
